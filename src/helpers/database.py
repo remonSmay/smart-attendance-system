@@ -1,3 +1,6 @@
+from typing import AsyncIterator
+
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base 
 from .config import get_settings
@@ -18,13 +21,12 @@ AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autocommit=False,
+    # autocommit=False, # no use in sqlalchemy 2.0
     autoflush=False,
 )
 
 # Base class for models
 Base = declarative_base()
-    
 
 
 # Dependency to get database session
@@ -41,9 +43,9 @@ async def async_get_db() -> AsyncIterator[AsyncSession]:
 
 
 async def init_db():
-    """Initialize database tables."""
+    """Initialize database connectivity (schema managed by Alembic)."""
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("SELECT 1"))
 
 
 async def close_db():

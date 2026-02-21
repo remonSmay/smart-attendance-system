@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8"  # Optional: Specify encoding
     )
+    
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
