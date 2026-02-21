@@ -13,10 +13,14 @@ class CourseController(CRUDBaseController[Course]):
     async def create_course(self, db: AsyncSession, payload: CourseCreate) -> Course:
         return await self.create(db, payload.model_dump())
 
-    async def update_course(self, db: AsyncSession, course: Course, payload: CourseUpdate) -> Course:
+    async def update_course(
+        self, db: AsyncSession, course: Course, payload: CourseUpdate
+    ) -> Course:
         return await self.update(db, course, payload.model_dump(exclude_unset=True))
 
-    async def search(self, db: AsyncSession, query: str, *, offset: int = 0, limit: int = 50) -> list[Course]:
+    async def search(
+        self, db: AsyncSession, query: str, *, offset: int = 0, limit: int = 50
+    ) -> list[Course]:
         stmt = (
             select(Course)
             .where(

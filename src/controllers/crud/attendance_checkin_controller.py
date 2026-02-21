@@ -78,7 +78,11 @@ class AttendanceCheckInController:
                 checked_at=checked_at,
             )
 
-        if not session.is_active or checked_at < session.start_time or checked_at > session.end_time:
+        if (
+            not session.is_active
+            or checked_at < session.start_time
+            or checked_at > session.end_time
+        ):
             await self._append_audit(
                 db,
                 event_type="checkin_failed",
@@ -92,7 +96,9 @@ class AttendanceCheckInController:
                 checked_at=checked_at,
             )
 
-        device_exists = await db.scalar(select(Device.id).where(Device.id == payload.device_id))
+        device_exists = await db.scalar(
+            select(Device.id).where(Device.id == payload.device_id)
+        )
         if not device_exists:
             await self._append_audit(
                 db,

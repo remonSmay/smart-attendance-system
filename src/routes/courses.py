@@ -13,7 +13,9 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 
 @router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
-async def create_course(payload: CourseCreate, db: AsyncSession = Depends(async_get_db)):
+async def create_course(
+    payload: CourseCreate, db: AsyncSession = Depends(async_get_db)
+):
     try:
         return await course_controller.create_course(db, payload)
     except IntegrityError as exc:
@@ -47,7 +49,9 @@ async def search_courses(
 async def get_course(course_id: UUID, db: AsyncSession = Depends(async_get_db)):
     course = await course_controller.get_by_id(db, course_id)
     if not course:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="course not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="course not found"
+        )
     return course
 
 
@@ -59,7 +63,9 @@ async def update_course(
 ):
     course = await course_controller.get_by_id(db, course_id)
     if not course:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="course not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="course not found"
+        )
 
     try:
         return await course_controller.update_course(db, course, payload)
@@ -75,5 +81,7 @@ async def update_course(
 async def delete_course(course_id: UUID, db: AsyncSession = Depends(async_get_db)):
     course = await course_controller.get_by_id(db, course_id)
     if not course:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="course not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="course not found"
+        )
     await course_controller.delete(db, course)

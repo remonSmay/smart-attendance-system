@@ -13,11 +13,15 @@ router = APIRouter(prefix="/sections", tags=["sections"])
 
 
 @router.post("/", response_model=SectionResponse, status_code=status.HTTP_201_CREATED)
-async def create_section(payload: SectionCreate, db: AsyncSession = Depends(async_get_db)):
+async def create_section(
+    payload: SectionCreate, db: AsyncSession = Depends(async_get_db)
+):
     try:
         return await section_controller.create_section(db, payload)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
     except IntegrityError as exc:
         await db.rollback()
         raise HTTPException(
@@ -39,7 +43,9 @@ async def list_sections(
 async def get_section(section_id: UUID, db: AsyncSession = Depends(async_get_db)):
     section = await section_controller.get_by_id(db, section_id)
     if not section:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="section not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="section not found"
+        )
     return section
 
 
@@ -51,12 +57,16 @@ async def update_section(
 ):
     section = await section_controller.get_by_id(db, section_id)
     if not section:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="section not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="section not found"
+        )
 
     try:
         return await section_controller.update_section(db, section, payload)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
     except IntegrityError as exc:
         await db.rollback()
         raise HTTPException(
@@ -69,5 +79,7 @@ async def update_section(
 async def delete_section(section_id: UUID, db: AsyncSession = Depends(async_get_db)):
     section = await section_controller.get_by_id(db, section_id)
     if not section:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="section not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="section not found"
+        )
     await section_controller.delete(db, section)

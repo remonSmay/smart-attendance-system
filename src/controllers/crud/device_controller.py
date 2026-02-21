@@ -12,7 +12,9 @@ class DeviceController(CRUDBaseController[Device]):
     async def create_device(self, db: AsyncSession, payload: DeviceCreate) -> Device:
         return await self.create(db, payload.model_dump())
 
-    async def update_device(self, db: AsyncSession, device: Device, payload: DeviceUpdate) -> Device:
+    async def update_device(
+        self, db: AsyncSession, device: Device, payload: DeviceUpdate
+    ) -> Device:
         return await self.update(db, device, payload.model_dump(exclude_unset=True))
 
 

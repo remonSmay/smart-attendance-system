@@ -13,7 +13,9 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 
 
 @router.post("/", response_model=DeviceResponse, status_code=status.HTTP_201_CREATED)
-async def create_device(payload: DeviceCreate, db: AsyncSession = Depends(async_get_db)):
+async def create_device(
+    payload: DeviceCreate, db: AsyncSession = Depends(async_get_db)
+):
     try:
         return await device_controller.create_device(db, payload)
     except IntegrityError as exc:
@@ -37,7 +39,9 @@ async def list_devices(
 async def get_device(device_id: UUID, db: AsyncSession = Depends(async_get_db)):
     device = await device_controller.get_by_id(db, device_id)
     if not device:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="device not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="device not found"
+        )
     return device
 
 
@@ -49,7 +53,9 @@ async def update_device(
 ):
     device = await device_controller.get_by_id(db, device_id)
     if not device:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="device not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="device not found"
+        )
 
     try:
         return await device_controller.update_device(db, device, payload)
@@ -65,5 +71,7 @@ async def update_device(
 async def delete_device(device_id: UUID, db: AsyncSession = Depends(async_get_db)):
     device = await device_controller.get_by_id(db, device_id)
     if not device:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="device not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="device not found"
+        )
     await device_controller.delete(db, device)

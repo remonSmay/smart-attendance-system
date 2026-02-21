@@ -3,7 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.attendance_checkin_controller import attendance_checkin_controller
 from helpers.database import async_get_db
-from schemas.attendance_event import AttendanceCheckInRequest, AttendanceValidationResult
+from schemas.attendance_event import (
+    AttendanceCheckInRequest,
+    AttendanceValidationResult,
+)
 
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
