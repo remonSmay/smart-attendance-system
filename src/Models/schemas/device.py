@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from schemas.base import ORMModel, TimestampedResponse
+from Models.schemas.base import ORMModel, TimestampedResponse
 
 
 class DeviceCreate(ORMModel):

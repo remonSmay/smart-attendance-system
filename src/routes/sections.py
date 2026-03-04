@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.section_controller import section_controller
 from helpers.database import async_get_db
-from schemas.section import SectionCreate, SectionResponse, SectionUpdate
+from helpers.dependencies import (
+    ensure_admin_or_self,
+    ensure_section_access,
+    get_current_user,
+)
+from Models import User
+from Models.schemas.section import SectionCreate, SectionResponse, SectionUpdate
 
 
 router = APIRouter(prefix="/sections", tags=["sections"])
@@ -14,8 +20,11 @@ router = APIRouter(prefix="/sections", tags=["sections"])
 
 @router.post("/", response_model=SectionResponse, status_code=status.HTTP_201_CREATED)
 async def create_section(
-    payload: SectionCreate, db: AsyncSession = Depends(async_get_db)
+    payload: SectionCreate,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin_or_self(current_user, payload.instructor_id)
     try:
         return await section_controller.create_section(db, payload)
     except ValueError as exc:
@@ -35,12 +44,21 @@ async def list_sections(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return await section_controller.list_all(db, offset=offset, limit=limit)
+    sections = await section_controller.list_all(db, offset=offset, limit=limit)
+    if current_user.role == "admin":
+        return sections
+    return [section for section in sections if section.instructor_id == current_user.id]
 
 
 @router.get("/{section_id}", response_model=SectionResponse)
-async def get_section(section_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def get_section(
+    section_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await ensure_section_access(db, current_user, section_id, write=False)
     section = await section_controller.get_by_id(db, section_id)
     if not section:
         raise HTTPException(
@@ -54,7 +72,9 @@ async def update_section(
     section_id: UUID,
     payload: SectionUpdate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    await ensure_section_access(db, current_user, section_id, write=True)
     section = await section_controller.get_by_id(db, section_id)
     if not section:
         raise HTTPException(
@@ -76,7 +96,12 @@ async def update_section(
 
 
 @router.delete("/{section_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_section(section_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def delete_section(
+    section_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await ensure_section_access(db, current_user, section_id, write=True)
     section = await section_controller.get_by_id(db, section_id)
     if not section:
         raise HTTPException(

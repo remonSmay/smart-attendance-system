@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Models import Course
 from controllers.base_controller import CRUDBaseController
-from schemas.course import CourseCreate, CourseUpdate
+from Models.schemas.course import CourseCreate, CourseUpdate
 
 
 class CourseController(CRUDBaseController[Course]):

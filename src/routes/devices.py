@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.device_controller import device_controller
 from helpers.database import async_get_db
-from schemas.device import DeviceCreate, DeviceResponse, DeviceUpdate
+from helpers.dependencies import get_current_user, ensure_admin
+from Models import User
+from Models.schemas.device import DeviceCreate, DeviceResponse, DeviceUpdate
 
 
 router = APIRouter(prefix="/devices", tags=["devices"])
@@ -14,8 +16,11 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 
 @router.post("/", response_model=DeviceResponse, status_code=status.HTTP_201_CREATED)
 async def create_device(
-    payload: DeviceCreate, db: AsyncSession = Depends(async_get_db)
+    payload: DeviceCreate,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     try:
         return await device_controller.create_device(db, payload)
     except IntegrityError as exc:
@@ -31,12 +36,17 @@ async def list_devices(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return await device_controller.list_all(db, offset=offset, limit=limit)
 
 
 @router.get("/{device_id}", response_model=DeviceResponse)
-async def get_device(device_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def get_device(
+    device_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
     device = await device_controller.get_by_id(db, device_id)
     if not device:
         raise HTTPException(
@@ -50,7 +60,9 @@ async def update_device(
     device_id: UUID,
     payload: DeviceUpdate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     device = await device_controller.get_by_id(db, device_id)
     if not device:
         raise HTTPException(
@@ -68,7 +80,12 @@ async def update_device(
 
 
 @router.delete("/{device_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_device(device_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def delete_device(
+    device_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    ensure_admin(current_user)
     device = await device_controller.get_by_id(db, device_id)
     if not device:
         raise HTTPException(

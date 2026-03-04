@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from schemas.base import ORMModel, TimestampedResponse
+from Models.schemas.base import ORMModel, TimestampedResponse
 
 
 AttendanceMethod = Literal["RFID", "FACE", "MANUAL"]

@@ -7,7 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.student_controller import student_controller
 from helpers.database import async_get_db
-from schemas.student import StudentCreate, StudentResponse, StudentUpdate
+from helpers.dependencies import get_current_user, ensure_admin
+from Models import User
+from Models.schemas.student import StudentCreate, StudentResponse, StudentUpdate
 
 
 router = APIRouter(prefix="/students", tags=["students"])
@@ -17,7 +19,9 @@ router = APIRouter(prefix="/students", tags=["students"])
 async def create_student(
     payload: StudentCreate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     try:
         return await student_controller.create_student(db, payload)
     except IntegrityError as exc:
@@ -33,6 +37,7 @@ async def list_students(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return await student_controller.list_all(db, offset=offset, limit=limit)
 
@@ -43,6 +48,7 @@ async def search_students(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=100),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return await student_controller.search(db, query=query, offset=offset, limit=limit)
 
@@ -51,6 +57,7 @@ async def search_students(
 async def get_student(
     student_id: UUID,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     student = await student_controller.get_by_id(db, student_id)
     if not student:
@@ -65,7 +72,9 @@ async def update_student(
     student_id: UUID,
     payload: StudentUpdate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     student = await student_controller.get_by_id(db, student_id)
     if not student:
         raise HTTPException(
@@ -86,7 +95,9 @@ async def update_student(
 async def delete_student(
     student_id: UUID,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ) -> None:
+    ensure_admin(current_user)
     student = await student_controller.get_by_id(db, student_id)
     if not student:
         raise HTTPException(

@@ -7,7 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.attendance_session_controller import attendance_session_controller
 from helpers.database import async_get_db
-from schemas.attendance_session import (
+from helpers.dependencies import (
+    ensure_admin_or_self,
+    ensure_section_access,
+    ensure_session_access,
+    get_current_user,
+)
+from Models import User
+from Models.schemas.attendance_session import (
     AttendanceSessionCreate,
     AttendanceSessionResponse,
     AttendanceSessionUpdate,
@@ -23,7 +30,10 @@ router = APIRouter(prefix="/attendance-sessions", tags=["attendance-sessions"])
 async def create_attendance_session(
     payload: AttendanceSessionCreate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin_or_self(current_user, payload.created_by_id)
+    await ensure_section_access(db, current_user, payload.section_id, write=True)
     try:
         return await attendance_session_controller.create_session(db, payload)
     except ValueError as exc:
@@ -43,22 +53,34 @@ async def list_attendance_sessions(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return await attendance_session_controller.list_all(db, offset=offset, limit=limit)
+    sessions = await attendance_session_controller.list_all(
+        db, offset=offset, limit=limit
+    )
+    if current_user.role == "admin":
+        return sessions
+    return [session for session in sessions if session.created_by_id == current_user.id]
 
 
 @router.get("/active", response_model=List[AttendanceSessionResponse])
 async def list_active_sessions(
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return await attendance_session_controller.list_active(db)
+    sessions = await attendance_session_controller.list_active(db)
+    if current_user.role == "admin":
+        return sessions
+    return [session for session in sessions if session.created_by_id == current_user.id]
 
 
 @router.get("/{session_id}", response_model=AttendanceSessionResponse)
 async def get_attendance_session(
     session_id: UUID,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    await ensure_session_access(db, current_user, session_id, write=False)
     session = await attendance_session_controller.get_by_id(db, session_id)
     if not session:
         raise HTTPException(
@@ -72,7 +94,9 @@ async def update_attendance_session(
     session_id: UUID,
     payload: AttendanceSessionUpdate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    await ensure_session_access(db, current_user, session_id, write=True)
     session = await attendance_session_controller.get_by_id(db, session_id)
     if not session:
         raise HTTPException(
@@ -97,7 +121,9 @@ async def update_attendance_session(
 async def delete_attendance_session(
     session_id: UUID,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ) -> None:
+    await ensure_session_access(db, current_user, session_id, write=True)
     session = await attendance_session_controller.get_by_id(db, session_id)
     if not session:
         raise HTTPException(

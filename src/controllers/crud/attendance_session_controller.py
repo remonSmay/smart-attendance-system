@@ -5,7 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Models import AttendanceSession
 from controllers.base_controller import CRUDBaseController
-from schemas.attendance_session import AttendanceSessionCreate, AttendanceSessionUpdate
+from Models.schemas.attendance_session import (
+    AttendanceSessionCreate,
+    AttendanceSessionUpdate,
+)
 
 
 class AttendanceSessionController(CRUDBaseController[AttendanceSession]):

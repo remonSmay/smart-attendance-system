@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.course_controller import course_controller
 from helpers.database import async_get_db
-from schemas.course import CourseCreate, CourseResponse, CourseUpdate
+from helpers.dependencies import get_current_user, ensure_admin
+from Models import User
+from Models.schemas.course import CourseCreate, CourseResponse, CourseUpdate
 
 
 router = APIRouter(prefix="/courses", tags=["courses"])
@@ -14,8 +16,11 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 @router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
 async def create_course(
-    payload: CourseCreate, db: AsyncSession = Depends(async_get_db)
+    payload: CourseCreate,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     try:
         return await course_controller.create_course(db, payload)
     except IntegrityError as exc:
@@ -31,6 +36,7 @@ async def list_courses(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return await course_controller.list_all(db, offset=offset, limit=limit)
 
@@ -41,12 +47,17 @@ async def search_courses(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=100),
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return await course_controller.search(db, query=query, offset=offset, limit=limit)
 
 
 @router.get("/{course_id}", response_model=CourseResponse)
-async def get_course(course_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def get_course(
+    course_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
     course = await course_controller.get_by_id(db, course_id)
     if not course:
         raise HTTPException(
@@ -60,7 +71,9 @@ async def update_course(
     course_id: UUID,
     payload: CourseUpdate,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    ensure_admin(current_user)
     course = await course_controller.get_by_id(db, course_id)
     if not course:
         raise HTTPException(
@@ -78,7 +91,12 @@ async def update_course(
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_course(course_id: UUID, db: AsyncSession = Depends(async_get_db)):
+async def delete_course(
+    course_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    ensure_admin(current_user)
     course = await course_controller.get_by_id(db, course_id)
     if not course:
         raise HTTPException(

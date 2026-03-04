@@ -11,7 +11,7 @@ from Models import (
     Device,
     Enrollment,
 )
-from schemas.attendance_event import (
+from Models.schemas.attendance_event import (
     AttendanceCheckInRequest,
     AttendanceEventResponse,
     AttendanceValidationResult,

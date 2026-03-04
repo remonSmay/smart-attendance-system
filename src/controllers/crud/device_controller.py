@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Models import Device
 from controllers.base_controller import CRUDBaseController
-from schemas.device import DeviceCreate, DeviceUpdate
+from Models.schemas.device import DeviceCreate, DeviceUpdate
 
 
 class DeviceController(CRUDBaseController[Device]):

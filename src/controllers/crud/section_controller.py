@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from Models import Course, Section, User
 from controllers.base_controller import CRUDBaseController
-from schemas.section import SectionCreate, SectionUpdate
+from Models.schemas.section import SectionCreate, SectionUpdate
 
 
 class SectionController(CRUDBaseController[Section]):
