@@ -10,7 +10,9 @@ from Models.schemas.attendance_session import (
 )
 from Models.schemas.audit_log import AuditLogCreate, AuditLogResponse
 from Models.schemas.course import (
+    CourseAttendanceSummary,
     CourseCreate,
+    CourseDashboardResponse,
     CourseResponse,
     CourseStudentAttendanceResponse,
     CourseUpdate,
@@ -37,7 +39,9 @@ __all__ = [
     "AttendanceSessionUpdate",
     "AuditLogCreate",
     "AuditLogResponse",
+    "CourseAttendanceSummary",
     "CourseCreate",
+    "CourseDashboardResponse",
     "CourseResponse",
     "CourseStudentAttendanceResponse",
     "CourseUpdate",
