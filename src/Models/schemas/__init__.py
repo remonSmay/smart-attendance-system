@@ -9,7 +9,12 @@ from Models.schemas.attendance_session import (
     AttendanceSessionUpdate,
 )
 from Models.schemas.audit_log import AuditLogCreate, AuditLogResponse
-from Models.schemas.course import CourseCreate, CourseResponse, CourseUpdate
+from Models.schemas.course import (
+    CourseCreate,
+    CourseResponse,
+    CourseStudentAttendanceResponse,
+    CourseUpdate,
+)
 from Models.schemas.device import DeviceCreate, DeviceResponse, DeviceUpdate
 from Models.schemas.section import SectionCreate, SectionResponse, SectionUpdate
 from Models.schemas.student import StudentCreate, StudentResponse, StudentUpdate
@@ -34,6 +39,7 @@ __all__ = [
     "AuditLogResponse",
     "CourseCreate",
     "CourseResponse",
+    "CourseStudentAttendanceResponse",
     "CourseUpdate",
     "DeviceCreate",
     "DeviceResponse",

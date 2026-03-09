@@ -8,7 +8,12 @@ from controllers.crud.course_controller import course_controller
 from helpers.database import async_get_db
 from helpers.dependencies import get_current_user, ensure_admin
 from Models import User
-from Models.schemas.course import CourseCreate, CourseResponse, CourseUpdate
+from Models.schemas.course import (
+    CourseCreate,
+    CourseResponse,
+    CourseStudentAttendanceResponse,
+    CourseUpdate,
+)
 
 
 router = APIRouter(prefix="/courses", tags=["courses"])
@@ -50,6 +55,31 @@ async def search_courses(
     current_user: User = Depends(get_current_user),
 ):
     return await course_controller.search(db, query=query, offset=offset, limit=limit)
+
+
+@router.get(
+    "/{course_id}/students", response_model=list[CourseStudentAttendanceResponse]
+)
+async def list_course_students(
+    course_id: UUID,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    course = await course_controller.get_by_id(db, course_id)
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="course not found"
+        )
+
+    return await course_controller.list_course_students_with_attendance(
+        db,
+        course_id,
+        current_user,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.get("/{course_id}", response_model=CourseResponse)

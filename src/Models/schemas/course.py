@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from Models.schemas.base import ORMModel, TimestampedResponse
+from Models.schemas.student import StudentResponse
 
 
 class CourseCreate(ORMModel):
@@ -16,3 +17,7 @@ class CourseUpdate(ORMModel):
 class CourseResponse(TimestampedResponse):
     course_name: str
     course_code: str
+
+
+class CourseStudentAttendanceResponse(StudentResponse):
+    attendance_percentage: float

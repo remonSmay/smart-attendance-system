@@ -1,3 +1,4 @@
+from fastapi.responses import JSONResponse
 from typing import List
 from uuid import UUID
 

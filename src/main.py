@@ -1,5 +1,5 @@
-from fastapi import FastAPI
 import uvicorn
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from helpers.database import close_db, init_db
 
@@ -53,4 +53,18 @@ FIXME
 
 
 
+User : the use the system , instructor the Section (entity)
+Student : enrollment in Section , has the Attendance Records 
+Course : the subject like (database , operation system , ai ) , has the Sections(entity)
+Section : the course has the group of one Course  
+Enrollment : has (student_id , section_id) like ((1, 10 ), (2,10)) , has the store the student in course
+Device : the device 
+AttendanceEvent : the hart of system , 
+    (attendance_id	معرف الحضور
+    student_id	الطالب
+    section_id	السكشن
+    device_id	الجهاز
+    method_used	RFID / FACE / MANUAL
+    final_status	Present / Absent / Late
+    timestamp	وقت الحضور)
 """

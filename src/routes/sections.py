@@ -2,17 +2,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.section_controller import section_controller
+from controllers.crud.student_controller import student_controller
 from helpers.database import async_get_db
 from helpers.dependencies import (
     ensure_admin_or_self,
     ensure_section_access,
     get_current_user,
 )
-from Models import User
+from Models import Enrollment, User
 from Models.schemas.section import SectionCreate, SectionResponse, SectionUpdate
+from Models.schemas.student import StudentResponse
 
 
 router = APIRouter(prefix="/sections", tags=["sections"])
@@ -65,6 +68,43 @@ async def get_section(
             status_code=status.HTTP_404_NOT_FOUND, detail="section not found"
         )
     return section
+
+
+@router.post(
+    "/{section_id}/students/{student_id}",
+    response_model=StudentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def enroll_student_in_section(
+    section_id: UUID,
+    student_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await ensure_section_access(db, current_user, section_id, write=True)
+
+    student = await student_controller.get_by_id(db, student_id)
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="student not found"
+        )
+
+    existing_enrollment = await db.scalar(
+        select(Enrollment).where(
+            Enrollment.student_id == student_id,
+            Enrollment.section_id == section_id,
+        )
+    )
+    if existing_enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="student is already enrolled in this section",
+        )
+
+    db.add(Enrollment(student_id=student_id, section_id=section_id))
+    await db.commit()
+
+    return student
 
 
 @router.put("/{section_id}", response_model=SectionResponse)

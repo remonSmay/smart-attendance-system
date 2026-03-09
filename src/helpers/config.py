@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     # Security
-    SECRET_KEY: str = "your-secret-key-here-change-in-production"
+    SECRET_KEY: str = "Remon**88"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080
