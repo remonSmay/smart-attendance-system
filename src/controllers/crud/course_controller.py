@@ -152,16 +152,20 @@ class CourseController(CRUDBaseController[Course]):
 
         accessible_sections_subquery = accessible_sections_stmt.subquery()
 
-        total_students_stmt = select(func.count(func.distinct(Enrollment.student_id))).where(
-            Enrollment.section_id.in_(select(accessible_sections_subquery.c.id))
-        )
+        total_students_stmt = select(
+            func.count(func.distinct(Enrollment.student_id))
+        ).where(Enrollment.section_id.in_(select(accessible_sections_subquery.c.id)))
         total_students = (await db.scalar(total_students_stmt)) or 0
 
         total_possible_stmt = (
             select(func.count())
             .select_from(AttendanceSession)
             .join(Enrollment, Enrollment.section_id == AttendanceSession.section_id)
-            .where(AttendanceSession.section_id.in_(select(accessible_sections_subquery.c.id)))
+            .where(
+                AttendanceSession.section_id.in_(
+                    select(accessible_sections_subquery.c.id)
+                )
+            )
         )
         total_possible = (await db.scalar(total_possible_stmt)) or 0
 
@@ -215,15 +219,19 @@ class CourseController(CRUDBaseController[Course]):
             )
             .select_from(AttendanceSession)
             .join(Enrollment, Enrollment.section_id == AttendanceSession.section_id)
-            .where(AttendanceSession.section_id.in_(select(accessible_sections_subquery.c.id)))
+            .where(
+                AttendanceSession.section_id.in_(
+                    select(accessible_sections_subquery.c.id)
+                )
+            )
             .group_by(period_start)
             .order_by(period_start.asc())
         )
         total_rows = (await db.execute(totals_stmt)).all()
 
-        event_period_start = func.date_trunc(period, AttendanceSession.start_time).label(
-            "period_start"
-        )
+        event_period_start = func.date_trunc(
+            period, AttendanceSession.start_time
+        ).label("period_start")
         presents_stmt = (
             select(
                 event_period_start,
@@ -235,7 +243,9 @@ class CourseController(CRUDBaseController[Course]):
                 AttendanceEvent.attendance_session_id == AttendanceSession.id,
             )
             .where(
-                AttendanceSession.section_id.in_(select(accessible_sections_subquery.c.id)),
+                AttendanceSession.section_id.in_(
+                    select(accessible_sections_subquery.c.id)
+                ),
                 AttendanceEvent.final_status == "Present",
             )
             .group_by(event_period_start)

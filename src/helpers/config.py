@@ -26,13 +26,13 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     # Security
-    SECRET_KEY: str = "Remon**88"
+    SECRET_KEY: str | None = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8"  # Optional: Specify encoding
+        env_file="src/.env", env_file_encoding="utf-8"  # Optional: Specify encoding
     )
 
 

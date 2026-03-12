@@ -68,3 +68,7 @@ AttendanceEvent : the hart of system ,
     final_status	Present / Absent / Late
     timestamp	وقت الحضور)
 """
+"""
+sudo lsof -i tcp:5432
+sudo kill -9 2795
+"""

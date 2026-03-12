@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from controllers.crud.course_controller import course_controller
 from helpers.database import async_get_db
-from helpers.dependencies import get_current_user, ensure_admin, ensure_admin_or_instructor
+from helpers.dependencies import (
+    get_current_user,
+    ensure_admin,
+    ensure_admin_or_instructor,
+)
 from Models import User
 from Models.schemas.course import (
     CourseDashboardResponse,
