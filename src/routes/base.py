@@ -9,6 +9,7 @@ from routes.courses import router as courses_router
 from routes.devices import router as devices_router
 from routes.sections import router as sections_router
 from routes.students import router as students_router
+from routes.ws import router as ws_router
 
 base_router = APIRouter(tags=["api_v1"], prefix="/api/v1")
 
@@ -33,3 +34,4 @@ base_router.include_router(devices_router)
 base_router.include_router(attendance_sessions_router)
 base_router.include_router(attendance_checkin_router)
 base_router.include_router(auth_router)
+base_router.include_router(ws_router)

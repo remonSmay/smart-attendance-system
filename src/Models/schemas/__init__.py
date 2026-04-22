@@ -17,7 +17,13 @@ from Models.schemas.course import (
     CourseStudentAttendanceResponse,
     CourseUpdate,
 )
-from Models.schemas.device import DeviceCreate, DeviceResponse, DeviceUpdate
+from Models.schemas.device import (
+    DeviceCreate,
+    DeviceResponse,
+    DeviceRFIDCheckinRequest,
+    DeviceRFIDCheckinResponse,
+    DeviceUpdate,
+)
 from Models.schemas.section import SectionCreate, SectionResponse, SectionUpdate
 from Models.schemas.student import StudentCreate, StudentResponse, StudentUpdate
 from Models.schemas.user import (
@@ -47,6 +53,8 @@ __all__ = [
     "CourseUpdate",
     "DeviceCreate",
     "DeviceResponse",
+    "DeviceRFIDCheckinRequest",
+    "DeviceRFIDCheckinResponse",
     "DeviceUpdate",
     "SectionCreate",
     "SectionResponse",

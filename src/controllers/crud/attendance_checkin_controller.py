@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,12 +10,14 @@ from Models import (
     AuditLog,
     Device,
     Enrollment,
+    Student,
 )
 from Models.schemas.attendance_event import (
     AttendanceCheckInRequest,
     AttendanceEventResponse,
     AttendanceValidationResult,
 )
+from helpers.ws_manager import ws_manager
 
 
 class AttendanceCheckInController:
@@ -185,6 +187,41 @@ class AttendanceCheckInController:
             )
 
         await db.refresh(attendance_event)
+
+        student_name = await db.scalar(
+            select(Student.full_name).where(Student.id == attendance_event.student_id)
+        )
+        total_present = (
+            await db.scalar(
+                select(func.count(func.distinct(AttendanceEvent.student_id))).where(
+                    AttendanceEvent.attendance_session_id
+                    == attendance_event.attendance_session_id,
+                    AttendanceEvent.final_status == "Present",
+                )
+            )
+        ) or 0
+        total_students = (
+            await db.scalar(
+                select(func.count(func.distinct(Enrollment.student_id))).where(
+                    Enrollment.section_id == attendance_event.section_id
+                )
+            )
+        ) or 0
+
+        await ws_manager.broadcast(
+            attendance_event.attendance_session_id,
+            {
+                "type": "checkin",
+                "student_id": str(attendance_event.student_id),
+                "student_name": student_name or "Unknown",
+                "method": attendance_event.method_used,
+                "status": attendance_event.final_status,
+                "timestamp": attendance_event.created_at.isoformat(),
+                "total_present": total_present,
+                "total_students": total_students,
+            },
+        )
+
         return AttendanceValidationResult(
             accepted=True,
             reason="attendance recorded",

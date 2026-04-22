@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import Field
 
 from Models.schemas.base import ORMModel, TimestampedResponse
@@ -16,3 +18,15 @@ class DeviceUpdate(ORMModel):
 class DeviceResponse(TimestampedResponse):
     device_name: str
     location: str | None
+
+
+class DeviceRFIDCheckinRequest(ORMModel):
+    device_id: UUID
+    rfid_uid: str = Field(min_length=1, max_length=50)
+    attendance_session_id: UUID
+
+
+class DeviceRFIDCheckinResponse(ORMModel):
+    accepted: bool
+    student_name: str | None = None
+    reason: str
