@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import type { RegisterPayload } from '../features/auth/types/authTypes'
 import './RegisterPage.css'
 
 interface RegisterPageProps {
-  onRegister: (data: Record<string, string>) => Promise<void>
+  onRegister: (data: RegisterPayload) => Promise<void>
   isLoading: boolean
   error: string | null
   onClearError: () => void
