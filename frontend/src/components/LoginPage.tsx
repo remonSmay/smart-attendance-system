@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { useState } from 'react';
 import './LoginPage.css';
 
@@ -16,7 +17,9 @@ interface FormErrors {
 const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [logoUnavailable, setLogoUnavailable] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const validateEmail = (email: string): boolean => {
@@ -75,83 +78,32 @@ const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) 
 
   return (
     <div className="login-container">
-      {/* Left Sidebar Panel */}
-      <div className="login-sidebar">
-        <div className="sidebar-content">
-          {/* Logo and System Name */}
-          <div className="sidebar-header">
-            <div className="logo-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
-            </div>
-            <h1 className="system-name">SHAMS</h1>
-            <p className="system-subtitle">Smart Hybrid Attendance System</p>
-          </div>
+      <div className="login-bg-shape login-bg-shape-left" aria-hidden="true" />
+      <div className="login-bg-shape login-bg-shape-right" aria-hidden="true" />
 
-          {/* Feature Highlights */}
-          <div className="features">
-            <div className="feature-item">
-              <div className="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="4" width="18" height="16" rx="2" />
-                  <path d="M7 10h10M7 14h10" />
-                </svg>
-              </div>
-              <p className="feature-text">RFID Card Verification</p>
-            </div>
-
-            <div className="feature-item">
-              <div className="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </div>
-              <p className="feature-text">Face Recognition</p>
-            </div>
-
-            <div className="feature-item">
-              <div className="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              </div>
-              <p className="feature-text">Real-time Tracking</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Form Panel */}
-      <div className="login-form-panel">
+      <div className="login-card-shell">
         <div className="form-content">
-          <div className="form-header">
-            <h2 className="form-title">Welcome Back</h2>
-            <p className="form-subtitle">Sign in to your account</p>
+          <div className="brand-block">
+            {!logoUnavailable ? (
+              <img
+                className="brand-logo"
+                src="/attendu-logo.png"
+                alt="Attendu logo"
+                onError={() => setLogoUnavailable(true)}
+              />
+            ) : (
+              <div className="brand-logo-fallback" aria-label="Attendu logo fallback">
+                ATTENDU
+              </div>
+            )}
+            <p className="brand-subtitle">Smart Attendance Platform</p>
           </div>
 
-          {/* Error Alert */}
+          <div className="form-header">
+            <h2 className="form-title">Welcome back</h2>
+            <p className="form-subtitle">Sign in to manage sessions and attendance records.</p>
+          </div>
+
           {error && (
             <div className="error-alert">
               <p className="error-message">{error}</p>
@@ -161,33 +113,31 @@ const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) 
                 type="button"
                 aria-label="Dismiss error"
               >
-                ✕
+                X
               </button>
             </div>
           )}
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="login-form">
-            {/* Email Field */}
             <div className="form-group">
               <label htmlFor="email" className="form-label">
-                Email Address
+                Email address
               </label>
               <input
                 id="email"
                 type="email"
                 className={`form-input ${formErrors.email ? 'input-error' : ''}`}
-                placeholder="Enter your email"
+                placeholder="name@university.edu"
                 value={email}
                 onChange={handleEmailChange}
                 disabled={isLoading}
+                autoComplete="email"
               />
               {formErrors.email && (
                 <p className="field-error">{formErrors.email}</p>
               )}
             </div>
 
-            {/* Password Field */}
             <div className="form-group">
               <label htmlFor="password" className="form-label">
                 Password
@@ -203,6 +153,7 @@ const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) 
                   value={password}
                   onChange={handlePasswordChange}
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -242,7 +193,21 @@ const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) 
               )}
             </div>
 
-            {/* Sign In Button */}
+            <div className="form-meta-row">
+              <label className="remember-wrap">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  disabled={isLoading}
+                />
+                <span>Remember me</span>
+              </label>
+              <a className="forgot-link" href="#" onClick={(event) => event.preventDefault()}>
+                Forgot password?
+              </a>
+            </div>
+
             <button
               type="submit"
               className="sign-in-button"
@@ -250,17 +215,36 @@ const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) 
             >
               {isLoading ? (
                 <>
-                  <span className="spinner"></span>
+                  <span className="spinner" />
                   <span>Signing in...</span>
                 </>
               ) : (
-                'Sign In'
+                'Sign in'
               )}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="footer-text">Smart Attendance System v1.0</p>
+          <div className="social-block" aria-label="Social login options">
+            <div className="social-divider">
+              <span>or continue with</span>
+            </div>
+            <div className="social-buttons">
+              <button type="button" className="social-button" disabled={isLoading}>
+                <span className="social-icon" aria-hidden="true">G</span>
+                Google
+              </button>
+              <button type="button" className="social-button" disabled={isLoading}>
+                <span className="social-icon" aria-hidden="true">M</span>
+                Microsoft
+              </button>
+            </div>
+          </div>
+
+          <p className="footer-text">
+            Don't have an account? <Link to="/register">Create one here</Link>. 
+            <br />
+            Secure access for instructors and admins.
+          </p>
         </div>
       </div>
     </div>
