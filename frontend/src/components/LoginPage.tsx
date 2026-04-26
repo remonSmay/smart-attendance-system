@@ -1,254 +1,189 @@
-import { Link } from "react-router-dom"
-import { useState } from 'react';
-import './LoginPage.css';
+import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+
+import BrandLogo from './ui/BrandLogo'
+import Button from './ui/Button'
+import Field from './ui/Field'
+import './LoginPage.css'
 
 interface LoginPageProps {
-  onLogin: (email: string, password: string) => Promise<void>;
-  isLoading: boolean;
-  error: string | null;
-  onClearError: () => void;
+  onLogin: (email: string, password: string) => Promise<void>
+  isLoading: boolean
+  error: string | null
+  onClearError: () => void
 }
 
 interface FormErrors {
-  email?: string;
-  password?: string;
+  email?: string
+  password?: string
 }
 
-const LoginPage = ({ onLogin, isLoading, error, onClearError }: LoginPageProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [logoUnavailable, setLogoUnavailable] = useState(false);
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
+const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+export default function LoginPage({
+  onLogin,
+  isLoading,
+  error,
+  onClearError,
+}: LoginPageProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [formErrors, setFormErrors] = useState<FormErrors>({})
 
   const validateForm = (): boolean => {
-    const errors: FormErrors = {};
+    const nextErrors: FormErrors = {}
 
     if (!email.trim()) {
-      errors.email = 'Email is required';
+      nextErrors.email = 'Email is required.'
     } else if (!validateEmail(email)) {
-      errors.email = 'Please enter a valid email address';
+      nextErrors.email = 'Enter a valid email address.'
     }
 
     if (!password) {
-      errors.password = 'Password is required';
+      nextErrors.password = 'Password is required.'
     } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      nextErrors.password = 'Password must be at least 6 characters.'
     }
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+    setFormErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
+  }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    onClearError();
-    if (formErrors.email) {
-      setFormErrors({ ...formErrors, email: undefined });
+  const clearFieldError = (field: keyof FormErrors) => {
+    if (formErrors[field]) {
+      setFormErrors((current) => ({ ...current, [field]: undefined }))
     }
-  };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    onClearError();
-    if (formErrors.password) {
-      setFormErrors({ ...formErrors, password: undefined });
+    if (error) {
+      onClearError()
     }
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
     if (!validateForm()) {
-      return;
+      return
     }
 
-    try {
-      await onLogin(email, password);
-    } catch (err) {
-      console.error('Login failed:', err);
-    }
-  };
+    await onLogin(email.trim(), password)
+  }
 
   return (
-    <div className="login-container">
-      <div className="login-bg-shape login-bg-shape-left" aria-hidden="true" />
-      <div className="login-bg-shape login-bg-shape-right" aria-hidden="true" />
+    <div className="ui-auth-page login-page">
+      <div className="ui-auth-card ui-auth-card--compact animate-fade-up">
+        <div className="ui-auth-header">
+          <BrandLogo centered large subtitle="Smart attendance platform" />
+          <div className="ui-fields" style={{ gap: 'var(--space-2)' }}>
+            <p className="ui-auth-kicker">Welcome back</p>
+            <h1 className="ui-auth-title">Sign in to your workspace</h1>
+            <p className="ui-auth-description">
+              Access courses, analytics, attendance sessions, and administration from one consistent workspace.
+            </p>
+          </div>
+        </div>
 
-      <div className="login-card-shell">
-        <div className="form-content">
-          <div className="brand-block">
-            {!logoUnavailable ? (
-              <img
-                className="brand-logo"
-                src="/attendu-logo.png"
-                alt="Attendu logo"
-                onError={() => setLogoUnavailable(true)}
+        {error ? (
+          <section className="ui-alert ui-alert--error" role="alert">
+            <p className="ui-alert__content">{error}</p>
+            <button type="button" className="ui-link-button" onClick={onClearError}>
+              Dismiss
+            </button>
+          </section>
+        ) : null}
+
+        <form className="ui-fields" onSubmit={handleSubmit} noValidate>
+          <Field label="Email address" htmlFor="login-email" error={formErrors.email}>
+            <input
+              id="login-email"
+              type="email"
+              className="ui-input"
+              placeholder="name@university.edu"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                clearFieldError('email')
+              }}
+              disabled={isLoading}
+              autoComplete="email"
+            />
+          </Field>
+
+          <Field label="Password" htmlFor="login-password" error={formErrors.password}>
+            <div className="ui-password">
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                className="ui-input"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  clearFieldError('password')
+                }}
+                disabled={isLoading}
+                autoComplete="current-password"
               />
-            ) : (
-              <div className="brand-logo-fallback" aria-label="Attendu logo fallback">
-                ATTENDU
-              </div>
-            )}
-            <p className="brand-subtitle">Smart Attendance Platform</p>
-          </div>
-
-          <div className="form-header">
-            <h2 className="form-title">Welcome back</h2>
-            <p className="form-subtitle">Sign in to manage sessions and attendance records.</p>
-          </div>
-
-          {error && (
-            <div className="error-alert">
-              <p className="error-message">{error}</p>
               <button
-                className="error-dismiss"
-                onClick={onClearError}
                 type="button"
-                aria-label="Dismiss error"
+                className="ui-password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                X
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-          )}
+          </Field>
 
-          <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email address
-              </label>
+          <div className="ui-meta-row">
+            <label className="ui-check">
               <input
-                id="email"
-                type="email"
-                className={`form-input ${formErrors.email ? 'input-error' : ''}`}
-                placeholder="name@university.edu"
-                value={email}
-                onChange={handleEmailChange}
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
                 disabled={isLoading}
-                autoComplete="email"
               />
-              {formErrors.email && (
-                <p className="field-error">{formErrors.email}</p>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <div className="password-field">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  className={`form-input password-input ${
-                    formErrors.password ? 'input-error' : ''
-                  }`}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  disabled={isLoading}
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                  aria-label={
-                    showPassword ? 'Hide password' : 'Show password'
-                  }
-                >
-                  {showPassword ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-4.5-11-4.5s1.6-2.89 4.07-4.5m4.83-3.78A4.99 4.99 0 0 1 12 8c2.76 0 5 2.24 5 5" />
-                      <path d="M9.9 4A10.07 10.07 0 0 1 12 4c7 0 11 4.5 11 4.5s-1.6 2.89-4.07 4.5M6.5 6.5L2 2" />
-                      <path d="M22 22L2 2" />
-                    </svg>
-                  ) : (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {formErrors.password && (
-                <p className="field-error">{formErrors.password}</p>
-              )}
-            </div>
-
-            <div className="form-meta-row">
-              <label className="remember-wrap">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                  disabled={isLoading}
-                />
-                <span>Remember me</span>
-              </label>
-              <a className="forgot-link" href="#" onClick={(event) => event.preventDefault()}>
-                Forgot password?
-              </a>
-            </div>
+              <span>Remember me</span>
+            </label>
 
             <button
-              type="submit"
-              className="sign-in-button"
+              type="button"
+              className="ui-link-button"
+              onClick={(event) => event.preventDefault()}
               disabled={isLoading}
             >
-              {isLoading ? (
-                <>
-                  <span className="spinner" />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                'Sign in'
-              )}
+              Forgot password?
             </button>
-          </form>
-
-          <div className="social-block" aria-label="Social login options">
-            <div className="social-divider">
-              <span>or continue with</span>
-            </div>
-            <div className="social-buttons">
-              <button type="button" className="social-button" disabled={isLoading}>
-                <span className="social-icon" aria-hidden="true">G</span>
-                Google
-              </button>
-              <button type="button" className="social-button" disabled={isLoading}>
-                <span className="social-icon" aria-hidden="true">M</span>
-                Microsoft
-              </button>
-            </div>
           </div>
 
-          <p className="footer-text">
-            Don't have an account? <Link to="/register">Create one here</Link>. 
-            <br />
-            Secure access for instructors and admins.
+          <Button type="submit" loading={isLoading} fullWidth size="lg">
+            {isLoading ? 'Signing in' : 'Sign in'}
+          </Button>
+        </form>
+
+        <div className="ui-social-row">
+          <div className="ui-divider">
+            <span>or continue with</span>
+          </div>
+          <div className="login-social-grid">
+            <Button type="button" variant="secondary" fullWidth>
+              Google
+            </Button>
+            <Button type="button" variant="secondary" fullWidth>
+              Microsoft
+            </Button>
+          </div>
+        </div>
+
+        <div className="ui-auth-footer">
+          <p className="ui-auth-description">
+            New to Attendu? <Link to="/register">Create an account</Link>.
           </p>
         </div>
       </div>
     </div>
-  );
-};
-
-export default LoginPage;
+  )
+}

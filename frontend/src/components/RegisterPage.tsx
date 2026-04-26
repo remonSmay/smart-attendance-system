@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+
 import type { RegisterPayload } from '../features/auth/types/authTypes'
+import BrandLogo from './ui/BrandLogo'
+import Button from './ui/Button'
+import Field from './ui/Field'
 import './RegisterPage.css'
 
 interface RegisterPageProps {
@@ -23,7 +27,6 @@ export default function RegisterPage({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [logoUnavailable, setLogoUnavailable] = useState(false)
   const [role, setRole] = useState<'admin' | 'instructor'>('instructor')
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -44,231 +47,204 @@ export default function RegisterPage({
       clearErrors()
     }
 
-  const validateEmail = (value: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(value)
-  }
+  const validateEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
     if (fullName.trim().length < 2) {
       setValidationError('Full name must be at least 2 characters long.')
       return
     }
+
     if (fullName.trim().length > 100) {
       setValidationError('Full name must be at most 100 characters long.')
       return
     }
+
     if (!validateEmail(email.trim())) {
       setValidationError('Please enter a valid email address.')
       return
     }
+
     if (password.length < 6) {
       setValidationError('Password must be at least 6 characters long.')
       return
     }
+
     if (password.length > 128) {
       setValidationError('Password must be at most 128 characters long.')
       return
     }
+
     if (password !== confirmPassword) {
       setValidationError('Passwords do not match.')
       return
     }
 
     setValidationError(null)
-    onRegister({ full_name: fullName.trim(), email: email.trim(), password, role })
+    void onRegister({
+      full_name: fullName.trim(),
+      email: email.trim(),
+      password,
+      role,
+    })
   }
 
   const displayError = validationError || error
 
   return (
-    <div className="register-container">
-      <div className="register-bg-shape register-bg-shape-left" aria-hidden="true" />
-      <div className="register-bg-shape register-bg-shape-right" aria-hidden="true" />
+    <div className="ui-auth-page register-page">
+      <div className="ui-auth-card animate-fade-up">
+        <div className="ui-auth-header">
+          <BrandLogo centered large subtitle="Create your instructor or admin account" />
+          <div className="ui-fields" style={{ gap: 'var(--space-2)' }}>
+            <p className="ui-auth-kicker">Create account</p>
+            <h1 className="ui-auth-title">Set up your Attendu workspace</h1>
+            <p className="ui-auth-description">
+              Use the same design system, navigation model, and course tooling from your first sign-in.
+            </p>
+          </div>
+        </div>
 
-      <div className="register-card-shell">
-        <div className="register-content">
-          <div className="register-brand-block">
-            {!logoUnavailable ? (
-              <img
-                className="register-brand-logo"
-                src="/attendu-logo.png"
-                alt="Attendu logo"
-                onError={() => setLogoUnavailable(true)}
+        {displayError ? (
+          <section className="ui-alert ui-alert--error" role="alert">
+            <p className="ui-alert__content">{displayError}</p>
+            <button type="button" className="ui-link-button" onClick={clearErrors}>
+              Dismiss
+            </button>
+          </section>
+        ) : null}
+
+        <form className="register-form-grid" onSubmit={handleSubmit} noValidate>
+          <Field label="Full name" htmlFor="register-full-name" span={2}>
+            <input
+              id="register-full-name"
+              type="text"
+              required
+              className="ui-input"
+              placeholder="John Doe"
+              value={fullName}
+              onChange={handleInputChange(setFullName)}
+              disabled={isLoading}
+              autoComplete="name"
+            />
+          </Field>
+
+          <Field label="Email address" htmlFor="register-email" span={2}>
+            <input
+              id="register-email"
+              type="email"
+              required
+              className="ui-input"
+              placeholder="name@university.edu"
+              value={email}
+              onChange={handleInputChange(setEmail)}
+              disabled={isLoading}
+              autoComplete="email"
+            />
+          </Field>
+
+          <Field label="Role" span={2}>
+            <div className="ui-segment-grid">
+              <label className="ui-radio-card">
+                <input
+                  type="radio"
+                  name="role"
+                  value="instructor"
+                  checked={role === 'instructor'}
+                  onChange={() => {
+                    setRole('instructor')
+                    clearErrors()
+                  }}
+                  disabled={isLoading}
+                />
+                <span className="ui-radio-card__content">
+                  <span className="ui-radio-card__title">Instructor</span>
+                  <span className="ui-radio-card__meta">Manage your sections and attendance sessions.</span>
+                </span>
+              </label>
+
+              <label className="ui-radio-card">
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={role === 'admin'}
+                  onChange={() => {
+                    setRole('admin')
+                    clearErrors()
+                  }}
+                  disabled={isLoading}
+                />
+                <span className="ui-radio-card__content">
+                  <span className="ui-radio-card__title">Admin</span>
+                  <span className="ui-radio-card__meta">Access the full control panel and system records.</span>
+                </span>
+              </label>
+            </div>
+          </Field>
+
+          <Field label="Password" htmlFor="register-password">
+            <div className="ui-password">
+              <input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="ui-input"
+                placeholder="Create a strong password"
+                value={password}
+                onChange={handleInputChange(setPassword)}
+                disabled={isLoading}
+                autoComplete="new-password"
               />
-            ) : (
-              <div className="register-brand-logo-fallback" aria-label="Attendu logo fallback">
-                ATTENDU
-              </div>
-            )}
-            <p className="register-brand-subtitle">Create your instructor or admin account</p>
-          </div>
-
-          <div className="register-header">
-            <h1 className="register-title">Create account</h1>
-            <p className="register-subtitle">Get started with smart attendance management.</p>
-          </div>
-
-          {displayError && (
-            <div className="register-error-alert" role="alert">
-              <p className="register-error-message">{displayError}</p>
               <button
-                className="register-error-dismiss"
-                onClick={clearErrors}
                 type="button"
-                aria-label="Dismiss error"
+                className="ui-password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                X
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-          )}
+          </Field>
 
-          <form onSubmit={handleSubmit} className="register-form" noValidate>
-            <div className="register-form-grid">
-              <div className="register-form-group register-form-group-full">
-                <label htmlFor="fullName" className="register-form-label">Full name</label>
-                <input
-                  id="fullName"
-                  type="text"
-                  required
-                  className="register-form-input"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={handleInputChange(setFullName)}
-                  disabled={isLoading}
-                  autoComplete="name"
-                />
-              </div>
-
-              <div className="register-form-group register-form-group-full">
-                <label htmlFor="email" className="register-form-label">Email address</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  className="register-form-input"
-                  placeholder="name@university.edu"
-                  value={email}
-                  onChange={handleInputChange(setEmail)}
-                  disabled={isLoading}
-                  autoComplete="email"
-                />
-              </div>
-
-              <div className="register-form-group register-form-group-full">
-                <p className="register-form-label register-role-label">Role</p>
-                <div className="register-role-grid">
-                  <label className="register-role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="instructor"
-                      checked={role === 'instructor'}
-                      onChange={() => {
-                        setRole('instructor')
-                        clearErrors()
-                      }}
-                      disabled={isLoading}
-                    />
-                    <span>
-                      <strong>Instructor</strong>
-                      <small>Manage own sections</small>
-                    </span>
-                  </label>
-
-                  <label className="register-role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="admin"
-                      checked={role === 'admin'}
-                      onChange={() => {
-                        setRole('admin')
-                        clearErrors()
-                      }}
-                      disabled={isLoading}
-                    />
-                    <span>
-                      <strong>Admin</strong>
-                      <small>Access all courses and reports</small>
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="register-form-group">
-                <label htmlFor="password" className="register-form-label">Password</label>
-                <div className="register-password-field">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    className="register-form-input register-password-input"
-                    placeholder="Create a strong password"
-                    value={password}
-                    onChange={handleInputChange(setPassword)}
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    className="register-password-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    disabled={isLoading}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="register-form-group">
-                <label htmlFor="confirmPassword" className="register-form-label">Confirm password</label>
-                <div className="register-password-field">
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    className="register-form-input register-password-input"
-                    placeholder="Repeat your password"
-                    value={confirmPassword}
-                    onChange={handleInputChange(setConfirmPassword)}
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    className="register-password-toggle"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    disabled={isLoading}
-                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
-                  >
-                    {showConfirmPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-              </div>
+          <Field label="Confirm password" htmlFor="register-confirm-password">
+            <div className="ui-password">
+              <input
+                id="register-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                className="ui-input"
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={handleInputChange(setConfirmPassword)}
+                disabled={isLoading}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="ui-password-toggle"
+                onClick={() => setShowConfirmPassword((current) => !current)}
+                disabled={isLoading}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
+          </Field>
 
-            <button
-              type="submit"
-              className="register-submit-button"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="register-spinner" />
-                  <span>Creating account...</span>
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
-          </form>
+          <div className="register-submit-row">
+            <Button type="submit" loading={isLoading} fullWidth size="lg">
+              {isLoading ? 'Creating account' : 'Create account'}
+            </Button>
+          </div>
+        </form>
 
-          <p className="register-footer-text">
-            Already have an account? <Link to="/login">Sign in here</Link>
+        <div className="ui-auth-footer">
+          <p className="ui-auth-description">
+            Already have an account? <Link to="/login">Sign in</Link>.
           </p>
         </div>
       </div>

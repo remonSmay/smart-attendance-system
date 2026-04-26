@@ -13,7 +13,7 @@ from helpers.dependencies import (
     ensure_section_access,
     get_current_user,
 )
-from Models import Enrollment, User
+from Models import Enrollment, Student, User
 from Models.schemas.section import SectionCreate, SectionResponse, SectionUpdate
 from Models.schemas.student import StudentResponse
 
@@ -70,6 +70,33 @@ async def get_section(
     return section
 
 
+@router.get("/{section_id}/students", response_model=list[StudentResponse])
+async def list_students_in_section(
+    section_id: UUID,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await ensure_section_access(db, current_user, section_id, write=False)
+
+    section = await section_controller.get_by_id(db, section_id)
+    if not section:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="section not found"
+        )
+
+    result = await db.execute(
+        select(Student)
+        .join(Enrollment, Enrollment.student_id == Student.id)
+        .where(Enrollment.section_id == section_id)
+        .offset(offset)
+        .limit(limit)
+    )
+
+    return list(result.scalars().all())
+
+
 @router.post(
     "/{section_id}/students/{student_id}",
     response_model=StudentResponse,
@@ -105,6 +132,34 @@ async def enroll_student_in_section(
     await db.commit()
 
     return student
+
+
+@router.delete(
+    "/{section_id}/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def remove_student_from_section(
+    section_id: UUID,
+    student_id: UUID,
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    await ensure_section_access(db, current_user, section_id, write=True)
+
+    enrollment = await db.scalar(
+        select(Enrollment).where(
+            Enrollment.student_id == student_id,
+            Enrollment.section_id == section_id,
+        )
+    )
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="enrollment not found",
+        )
+
+    await db.delete(enrollment)
+    await db.commit()
 
 
 @router.put("/{section_id}", response_model=SectionResponse)

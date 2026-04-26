@@ -1,0 +1,23 @@
+.admin-empty-state {
+  width: 100%;
+}
+
+.admin-empty-state h3 {
+  font-size: 1.1rem;
+}
+
+.admin-empty-state p {
+  max-width: 54ch;
+}
+
+.admin-empty-state button {
+  margin-top: 0.25rem;
+  min-height: 2.75rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0 1.125rem;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  font-weight: 700;
+}

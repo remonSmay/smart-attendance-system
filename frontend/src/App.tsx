@@ -1,14 +1,20 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 
-import DashboardPlaceholder from './components/DashboardPlaceholder'
+import AdminShell from './components/admin/AdminShell'
 import LoginPage from './components/LoginPage'
 import RegisterPage from './components/RegisterPage'
 import { useAuthActions } from './features/auth/hooks/useAuthActions'
+import CoursesAdminPage from './pages/admin/CoursesAdminPage'
+import DevicesAdminPage from './pages/admin/DevicesAdminPage'
+import EnrollmentsAdminPage from './pages/admin/EnrollmentsAdminPage'
+import SectionsAdminPage from './pages/admin/SectionsAdminPage'
+import StudentsAdminPage from './pages/admin/StudentsAdminPage'
+import CourseDashboardPage from './pages/CourseDashboardPage'
+import DashboardPage from './pages/DashboardPage'
 import ProtectedRoute from './routes/ProtectedRoute'
-import './App.css'
 
 function App() {
-  const { isLoading, error, login, register, clearError, logout } = useAuthActions()
+  const { isLoading, error, login, register, clearError } = useAuthActions()
 
   return (
     <Routes>
@@ -36,7 +42,18 @@ function App() {
         }
       />
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPlaceholder onLogout={logout} />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/courses/:id" element={<CourseDashboardPage />} />
+        <Route element={<ProtectedRoute allowedRoles={['admin']} unauthorizedPath="/dashboard" />}>
+          <Route path="/admin" element={<AdminShell />}>
+            <Route index element={<Navigate to="students" replace />} />
+            <Route path="students" element={<StudentsAdminPage />} />
+            <Route path="courses" element={<CoursesAdminPage />} />
+            <Route path="sections" element={<SectionsAdminPage />} />
+            <Route path="devices" element={<DevicesAdminPage />} />
+            <Route path="enrollments" element={<EnrollmentsAdminPage />} />
+          </Route>
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

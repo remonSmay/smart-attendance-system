@@ -1,0 +1,236 @@
+.session-controls {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-1);
+}
+
+.session-controls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.session-controls-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.session-controls-description {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.session-controls-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.session-controls-status.active {
+  color: #11663d;
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.session-controls-status.idle {
+  color: var(--color-text-muted);
+  background: rgba(116, 132, 153, 0.12);
+  border: 1px solid rgba(116, 132, 153, 0.18);
+}
+
+.session-controls-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+
+.session-controls-feedback {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+}
+
+.session-controls-feedback.error {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid rgba(214, 69, 69, 0.18);
+}
+
+.session-controls-feedback.info {
+  color: var(--color-text-muted);
+  background: rgba(116, 132, 153, 0.08);
+  border: 1px solid rgba(116, 132, 153, 0.14);
+}
+
+.session-controls-form {
+  display: grid;
+  gap: 14px;
+}
+
+.session-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.session-controls-field {
+  display: grid;
+  gap: 8px;
+}
+
+.session-controls-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.session-controls-field label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.session-controls-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 14px;
+  font: inherit;
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.session-controls-field input:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px rgba(15, 93, 205, 0.14);
+  transform: translateY(-1px);
+}
+
+.session-controls-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.session-controls-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.session-controls-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.session-controls-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.session-controls-button.primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  box-shadow: 0 14px 24px rgba(21, 81, 140, 0.2);
+}
+
+.session-controls-button.stop {
+  color: #fff;
+  background: linear-gradient(135deg, #178a4f, #11663d);
+  box-shadow: 0 14px 24px rgba(17, 102, 61, 0.22);
+}
+
+.session-controls-active-card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.02));
+  border: 1px solid rgba(34, 197, 94, 0.18);
+}
+
+.session-controls-active-meta {
+  display: grid;
+  gap: 6px;
+}
+
+.session-controls-active-meta h4 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.session-controls-active-meta p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.session-controls-countdown {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.session-controls-countdown-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #178a4f;
+}
+
+.session-controls-countdown-value {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  line-height: 1;
+  font-weight: 800;
+  color: #11663d;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .session-controls-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .session-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-controls-actions {
+    justify-content: stretch;
+  }
+
+  .session-controls-button {
+    width: 100%;
+  }
+}

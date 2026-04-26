@@ -1,0 +1,20 @@
+.course-dashboard-overview {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.course-dashboard-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.course-dashboard-chart-frame {
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 1024px) {
+  .course-dashboard-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,209 @@
+.admin-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.admin-page-note {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  color: var(--color-text);
+  box-shadow: var(--shadow-1);
+}
+
+.admin-page-note h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.admin-page-note p {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.admin-page-alert {
+  background: var(--color-danger-soft);
+  border: 1px solid rgba(214, 69, 69, 0.18);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.admin-page-alert p {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.admin-page-alert button {
+  min-height: 2.5rem;
+  background: #ffffff;
+  border: 1px solid rgba(214, 69, 69, 0.22);
+  color: var(--color-danger);
+  padding: 0 0.95rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* Form Grid */
+.admin-form-grid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.admin-form-grid input,
+.admin-form-grid textarea,
+.admin-form-grid select {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.8125rem 0.9375rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.admin-form-grid input:focus,
+.admin-form-grid textarea:focus,
+.admin-form-grid select:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px rgba(15, 93, 205, 0.15);
+}
+
+.admin-form-grid .admin-field-span-2 {
+  grid-column: span 2;
+}
+
+.admin-form-grid textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.admin-page-meta {
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+/* Pill Badges */
+.admin-status-pill {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-status-pill-active {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.admin-status-pill-inactive {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* Enrollments Layout */
+.admin-enrollment-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.admin-enrollment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.admin-enrollment-item {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.admin-enrollment-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-2);
+}
+
+.admin-enrollment-name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.admin-enrollment-meta {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.admin-enrollment-item button {
+  min-height: 2.5rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+  border: none;
+  padding: 0 1rem;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.admin-enrollment-item button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1);
+}
+
+.admin-enrollment-item button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .admin-enrollment-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-form-grid .admin-field-span-2 {
+    grid-column: span 1;
+  }
+}

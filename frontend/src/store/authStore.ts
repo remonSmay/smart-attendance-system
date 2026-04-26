@@ -1,4 +1,4 @@
-import type { AuthResponse } from '../features/auth/types/authTypes'
+import type { AuthResponse, AuthUser } from '../features/auth/types/authTypes'
 
 const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
@@ -19,5 +19,19 @@ export const authStore = {
 
   getAccessToken(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY)
+  },
+
+  getUser(): AuthUser | null {
+    const userRaw = localStorage.getItem(USER_KEY)
+
+    if (!userRaw) {
+      return null
+    }
+
+    try {
+      return JSON.parse(userRaw) as AuthUser
+    } catch {
+      return null
+    }
   },
 }
