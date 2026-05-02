@@ -45,16 +45,16 @@ export default function ConfirmDeleteModal({
   }
 
   return (
-    <div className="admin-modal-overlay" onClick={onCancel}>
+    <div className="admin-modal-overlay ui-modal-bottom-sheet" onClick={onCancel} style={{ zIndex: 9000 }}>
       <div
-        className="admin-modal-panel"
+        className="admin-modal-panel admin-modal"
         role="alertdialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby="confirm-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="admin-modal-header">
-          <h3 className="admin-modal-title">{title}</h3>
+          <h3 id="confirm-modal-title" className="admin-modal-title">{title}</h3>
           <p className="admin-modal-description">{message}</p>
         </div>
 

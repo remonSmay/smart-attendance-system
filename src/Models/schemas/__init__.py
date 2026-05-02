@@ -3,6 +3,7 @@ from Models.schemas.attendance_event import (
     AttendanceEventResponse,
     AttendanceValidationResult,
 )
+from Models.schemas.attendance_report import AttendanceReportSessionSummary
 from Models.schemas.attendance_session import (
     AttendanceSessionCreate,
     AttendanceSessionResponse,
@@ -40,6 +41,7 @@ __all__ = [
     "AttendanceCheckInRequest",
     "AttendanceEventResponse",
     "AttendanceValidationResult",
+    "AttendanceReportSessionSummary",
     "AttendanceSessionCreate",
     "AttendanceSessionResponse",
     "AttendanceSessionUpdate",

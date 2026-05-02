@@ -4,7 +4,8 @@ import type { AdminTopBarConfig } from '../../components/admin/AdminShell'
 import AdminFormModal from '../../components/admin/AdminFormModal'
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal'
 import DataTable, { type DataTableColumn } from '../../components/admin/DataTable'
-import EmptyState from '../../components/admin/EmptyState'
+import TableToolbar from '../../components/admin/TableToolbar'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import {
   createCourseAdmin,
   deleteCourseAdmin,
@@ -14,6 +15,7 @@ import {
 import { listSectionsAdmin } from '../../features/admin/api/sectionsAdminApi'
 import type { CourseApiResponse, CourseApiUpsertPayload } from '../../features/admin/types/adminApiTypes'
 import type { CourseAdminRow, CourseFormPayload } from '../../features/admin/types/adminContracts'
+import { useSnackbar } from '../../hooks/useSnackbar'
 import { useAdminPageConfig } from './useAdminPageConfig'
 import './AdminPages.css'
 
@@ -64,6 +66,10 @@ export default function CoursesAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formState, setFormState] = useState<CourseFormPayload>(initialCourseForm)
   const [selectedCourse, setSelectedCourse] = useState<CourseAdminRow | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
+  
+  const { showSnackbar } = useSnackbar()
 
   const syncCourseIntoState = useCallback(
     (course: CourseApiResponse) => {
@@ -142,6 +148,7 @@ export default function CoursesAdminPage() {
     setEditingId(null)
     setFormState(initialCourseForm)
     setIsFormOpen(true)
+    setFormError(null)
   }, [])
 
   const pageConfig = useMemo<AdminTopBarConfig>(
@@ -176,6 +183,7 @@ export default function CoursesAdminPage() {
       courseCode: sourceCourse?.course_code ?? row.courseCode,
       description: '',
     })
+    setFormError(null)
     setIsFormOpen(true)
   }, [coursesById])
 
@@ -187,7 +195,7 @@ export default function CoursesAdminPage() {
   const handleFormSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       const payload = toCoursePayload(formState)
@@ -199,14 +207,15 @@ export default function CoursesAdminPage() {
       setIsFormOpen(false)
       setEditingId(null)
       setFormState(initialCourseForm)
+      showSnackbar(editingId ? 'Course updated successfully.' : 'Course created successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      setFormError(
         error instanceof Error ? error.message : 'Failed to save course.',
       )
     } finally {
       setIsSubmitting(false)
     }
-  }, [editingId, formState, syncCourseIntoState])
+  }, [editingId, formState, syncCourseIntoState, showSnackbar])
 
   const handleConfirmDelete = useCallback(async () => {
     if (!selectedCourse) {
@@ -214,51 +223,65 @@ export default function CoursesAdminPage() {
     }
 
     setIsDeleting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       await deleteCourseAdmin(selectedCourse.id)
       removeCourseFromState(selectedCourse.id)
       setSelectedCourse(null)
       setIsDeleteOpen(false)
+      showSnackbar('Course deleted successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      showSnackbar(
         error instanceof Error ? error.message : 'Failed to delete course.',
+        'error'
       )
     } finally {
       setIsDeleting(false)
     }
-  }, [removeCourseFromState, selectedCourse])
+  }, [removeCourseFromState, selectedCourse, showSnackbar])
+
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows
+    const query = searchQuery.toLowerCase()
+    return rows.filter(row => 
+      row.courseName.toLowerCase().includes(query) || 
+      row.courseCode.toLowerCase().includes(query)
+    )
+  }, [rows, searchQuery])
 
   return (
     <div className="admin-page-stack">
-      <section className="admin-page-note">
-        <h3>Course catalog</h3>
-        <p>Keep course names, codes, and section coverage aligned across the attendance platform.</p>
-      </section>
+      <TableToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search courses by name or code..."
+      />
 
       {feedbackError && (
-        <section className="admin-page-alert" role="alert">
-          <p>{feedbackError}</p>
-          <button type="button" onClick={() => void loadCourses()}>
-            Retry
-          </button>
-        </section>
+        <FeedbackBanner 
+          variant="error" 
+          title="Data loading failed" 
+          description={feedbackError} 
+          actionLabel="Retry" 
+          onAction={() => void loadCourses()} 
+        />
       )}
 
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={filteredRows}
         isLoading={isLoading}
         getRowId={(row) => row.id}
         onEditRow={handleEdit}
         onDeleteRow={handleDelete}
         emptyState={
-          <EmptyState
-            title="No courses loaded"
-            description="Create the first course or use retry if the API is temporarily unavailable."
-            actionLabel="Add Course"
-            onAction={openCreateModal}
+          <FeedbackBanner
+            variant="empty"
+            title={searchQuery ? 'No courses found' : 'No courses loaded'}
+            description={searchQuery ? 'Try adjusting your search criteria.' : 'Create the first course to get started.'}
+            actionLabel={searchQuery ? undefined : 'Add Course'}
+            onAction={searchQuery ? undefined : openCreateModal}
           />
         }
       />
@@ -269,35 +292,42 @@ export default function CoursesAdminPage() {
         description="Maintain the core course details used by dashboards, sections, and analytics."
         submitLabel={editingId ? 'Save Course' : 'Create Course'}
         isSubmitting={isSubmitting}
+        errorMessage={formError}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
       >
         <div className="admin-form-grid">
-          <label>
-            Course Name
+          <div className="ui-field">
+            <label className="ui-field__label">Course Name</label>
             <input
+              className="ui-input"
               value={formState.courseName}
               onChange={(event) => setFormState((current) => ({ ...current, courseName: event.target.value }))}
+              placeholder="e.g. Introduction to Computer Science"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            Course Code
+          <div className="ui-field">
+            <label className="ui-field__label">Course Code</label>
             <input
+              className="ui-input"
               value={formState.courseCode}
               onChange={(event) => setFormState((current) => ({ ...current, courseCode: event.target.value }))}
+              placeholder="e.g. CS101"
               required
             />
-          </label>
+          </div>
 
-          <label className="admin-field-span-2">
-            Description
+          <div className="ui-field admin-field-span-2">
+            <label className="ui-field__label">Description</label>
             <textarea
+              className="ui-textarea"
               value={formState.description}
               onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))}
+              placeholder="Provide a brief overview of the course content..."
             />
-          </label>
+          </div>
         </div>
       </AdminFormModal>
 

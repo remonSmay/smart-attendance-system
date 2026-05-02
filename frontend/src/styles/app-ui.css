@@ -641,6 +641,7 @@
   flex-direction: column;
   gap: var(--space-6);
   background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border-right: 1px solid var(--color-border);
 }
@@ -711,6 +712,14 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding: var(--space-6);
+}
+
+.ui-shell__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .ui-shell__topbar-copy {
@@ -858,6 +867,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-3);
+    -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
   }
 
@@ -877,6 +887,90 @@
   .ui-shell__mobile-link--active {
     color: var(--color-primary);
     background: rgba(21, 81, 140, 0.08);
+  }
+}
+
+/* Mobile Table Cards */
+@media (max-width: 768px) {
+  .ui-table-mobile-cards table, 
+  .ui-table-mobile-cards thead, 
+  .ui-table-mobile-cards tbody, 
+  .ui-table-mobile-cards th, 
+  .ui-table-mobile-cards td, 
+  .ui-table-mobile-cards tr {
+    display: block;
+  }
+
+  .ui-table-mobile-cards thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .ui-table-mobile-cards tr {
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .ui-table-mobile-cards td {
+    border: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    position: relative;
+    padding: var(--space-3) 0 var(--space-3) 45%;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  .ui-table-mobile-cards td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .ui-table-mobile-cards td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 40%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .ui-table-mobile-cards .admin-table-actions {
+    justify-content: flex-start;
+    padding-left: 0;
+    margin-top: var(--space-2);
+  }
+}
+
+/* Bottom Sheet Modal */
+@media (max-width: 600px) {
+  .ui-modal-bottom-sheet {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .ui-modal-bottom-sheet .admin-modal {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 }
 

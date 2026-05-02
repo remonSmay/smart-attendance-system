@@ -4,7 +4,8 @@ import type { AdminTopBarConfig } from '../../components/admin/AdminShell'
 import AdminFormModal from '../../components/admin/AdminFormModal'
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal'
 import DataTable, { type DataTableColumn } from '../../components/admin/DataTable'
-import EmptyState from '../../components/admin/EmptyState'
+import TableToolbar from '../../components/admin/TableToolbar'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import {
   createDeviceAdmin,
   deleteDeviceAdmin,
@@ -13,6 +14,7 @@ import {
 } from '../../features/admin/api/devicesAdminApi'
 import type { DeviceApiResponse, DeviceApiUpsertPayload } from '../../features/admin/types/adminApiTypes'
 import type { DeviceAdminRow, DeviceFormPayload, PresenceMethod } from '../../features/admin/types/adminContracts'
+import { useSnackbar } from '../../hooks/useSnackbar'
 import { useAdminPageConfig } from './useAdminPageConfig'
 import './AdminPages.css'
 
@@ -59,6 +61,10 @@ export default function DevicesAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formState, setFormState] = useState<DeviceFormPayload>(initialDeviceForm)
   const [selectedDevice, setSelectedDevice] = useState<DeviceAdminRow | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const { showSnackbar } = useSnackbar()
 
   const syncDeviceIntoState = useCallback((device: DeviceApiResponse) => {
     const nextRow = toDeviceRow(device)
@@ -124,6 +130,7 @@ export default function DevicesAdminPage() {
   const openCreateModal = useCallback(() => {
     setEditingId(null)
     setFormState(initialDeviceForm)
+    setFormError(null)
     setIsFormOpen(true)
   }, [])
 
@@ -177,6 +184,7 @@ export default function DevicesAdminPage() {
       supportedMethods: row.supportedMethods,
       isActive: row.isActive,
     })
+    setFormError(null)
     setIsFormOpen(true)
   }, [devicesById])
 
@@ -188,7 +196,7 @@ export default function DevicesAdminPage() {
   const handleFormSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       const payload = toDevicePayload(formState)
@@ -200,14 +208,15 @@ export default function DevicesAdminPage() {
       setIsFormOpen(false)
       setEditingId(null)
       setFormState(initialDeviceForm)
+      showSnackbar(editingId ? 'Device updated successfully.' : 'Device created successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      setFormError(
         error instanceof Error ? error.message : 'Failed to save device.',
       )
     } finally {
       setIsSubmitting(false)
     }
-  }, [editingId, formState, syncDeviceIntoState])
+  }, [editingId, formState, syncDeviceIntoState, showSnackbar])
 
   const handleConfirmDelete = useCallback(async () => {
     if (!selectedDevice) {
@@ -215,51 +224,65 @@ export default function DevicesAdminPage() {
     }
 
     setIsDeleting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       await deleteDeviceAdmin(selectedDevice.id)
       removeDeviceFromState(selectedDevice.id)
       setSelectedDevice(null)
       setIsDeleteOpen(false)
+      showSnackbar('Device deleted successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      showSnackbar(
         error instanceof Error ? error.message : 'Failed to delete device.',
+        'error'
       )
     } finally {
       setIsDeleting(false)
     }
-  }, [removeDeviceFromState, selectedDevice])
+  }, [removeDeviceFromState, selectedDevice, showSnackbar])
+
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows
+    const query = searchQuery.toLowerCase()
+    return rows.filter(row => 
+      row.deviceName.toLowerCase().includes(query) || 
+      row.location.toLowerCase().includes(query)
+    )
+  }, [rows, searchQuery])
 
   return (
     <div className="admin-page-stack">
-      <section className="admin-page-note">
-        <h3>Device inventory</h3>
-        <p>Track device names, deployment locations, and operating status for the attendance network.</p>
-      </section>
+      <TableToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search devices by name or location..."
+      />
 
       {feedbackError && (
-        <section className="admin-page-alert" role="alert">
-          <p>{feedbackError}</p>
-          <button type="button" onClick={() => void loadDevices()}>
-            Retry
-          </button>
-        </section>
+        <FeedbackBanner 
+          variant="error" 
+          title="Data loading failed" 
+          description={feedbackError} 
+          actionLabel="Retry" 
+          onAction={() => void loadDevices()} 
+        />
       )}
 
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={filteredRows}
         isLoading={isLoading}
         getRowId={(row) => row.id}
         onEditRow={handleEdit}
         onDeleteRow={handleDelete}
         emptyState={
-          <EmptyState
-            title="No devices loaded"
-            description="Create the first device or use retry if the API is temporarily unavailable."
-            actionLabel="Add Device"
-            onAction={openCreateModal}
+          <FeedbackBanner
+            variant="empty"
+            title={searchQuery ? 'No devices found' : 'No devices loaded'}
+            description={searchQuery ? 'Try adjusting your search criteria.' : 'Create the first device to get started.'}
+            actionLabel={searchQuery ? undefined : 'Add Device'}
+            onAction={searchQuery ? undefined : openCreateModal}
           />
         }
       />
@@ -270,31 +293,37 @@ export default function DevicesAdminPage() {
         description="Maintain the device details used to identify active attendance hardware across locations."
         submitLabel={editingId ? 'Save Device' : 'Create Device'}
         isSubmitting={isSubmitting}
+        errorMessage={formError}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
       >
         <div className="admin-form-grid">
-          <label>
-            Device Name
+          <div className="ui-field">
+            <label className="ui-field__label">Device Name</label>
             <input
+              className="ui-input"
               value={formState.deviceName}
               onChange={(event) => setFormState((current) => ({ ...current, deviceName: event.target.value }))}
+              placeholder="e.g. Lab Reader A"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            Location
+          <div className="ui-field">
+            <label className="ui-field__label">Location</label>
             <input
+              className="ui-input"
               value={formState.location}
               onChange={(event) => setFormState((current) => ({ ...current, location: event.target.value }))}
+              placeholder="e.g. Building 4, Room 201"
               required
             />
-          </label>
+          </div>
 
-          <label className="admin-field-span-2">
-            Supported Methods (RFID, FACE, MANUAL)
+          <div className="ui-field admin-field-span-2">
+            <label className="ui-field__label">Supported Methods (RFID, FACE, MANUAL)</label>
             <input
+              className="ui-input"
               value={formState.supportedMethods.join(', ')}
               onChange={(event) =>
                 setFormState((current) => ({
@@ -302,12 +331,14 @@ export default function DevicesAdminPage() {
                   supportedMethods: normalizeMethods(event.target.value),
                 }))
               }
+              placeholder="e.g. RFID, FACE"
             />
-          </label>
+          </div>
 
-          <label className="admin-field-span-2">
-            Status
+          <div className="ui-field admin-field-span-2">
+            <label className="ui-field__label">Status</label>
             <select
+              className="ui-select"
               value={formState.isActive ? 'active' : 'inactive'}
               onChange={(event) =>
                 setFormState((current) => ({
@@ -319,7 +350,7 @@ export default function DevicesAdminPage() {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
-          </label>
+          </div>
         </div>
       </AdminFormModal>
 

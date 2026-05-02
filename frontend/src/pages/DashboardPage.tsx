@@ -24,6 +24,14 @@ const IconSettings = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.81a2 2 0 0 1-1.34 1.56l-.77.26a2 2 0 0 1-1.99-.33l-.64-.49a2 2 0 0 0-2.73.18l-.31.31a2 2 0 0 0-.18 2.73l.49.64a2 2 0 0 1 .33 1.99l-.26.77a2 2 0 0 1-1.56 1.34l-.81.12a2 2 0 0 0-1.72 2v.44a2 2 0 0 0 1.72 2l.81.12a2 2 0 0 1 1.56 1.34l.26.77a2 2 0 0 1-.33 1.99l-.49.64a2 2 0 0 0 .18 2.73l.31.31a2 2 0 0 0 2.73.18l.64-.49a2 2 0 0 1 1.99-.33l.77.26a2 2 0 0 1 1.34 1.56l.12.81a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.81a2 2 0 0 1 1.34-1.56l.77-.26a2 2 0 0 1 1.99.33l.64.49a2 2 0 0 0 2.73-.18l.31-.31a2 2 0 0 0 .18-2.73l-.49-.64a2 2 0 0 1-.33-1.99l.26-.77a2 2 0 0 1 1.56-1.34l.81-.12a2 2 0 0 0 1.72-2v-.44a2 2 0 0 0-1.72-2l-.81-.12a2 2 0 0 1-1.56-1.34l-.26-.77a2 2 0 0 1 .33-1.99l.49-.64a2 2 0 0 0-.18-2.73l-.31-.31a2 2 0 0 0-2.73-.18l-.64.49a2 2 0 0 1-1.99.33l-.77-.26a2 2 0 0 1-1.34-1.56l-.12-.81a2 2 0 0 0-2-1.72Z" /><circle cx="12" cy="12" r="3" /></svg>
 )
 
+const IconTimer = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2h4" /><path d="M12 14v-4" /><path d="M12 2v2" /><circle cx="12" cy="14" r="8" /></svg>
+)
+
+const IconHistory = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5" /><path d="M3.05 13a9 9 0 1 0 2.13-5.3L3 10" /><path d="M12 7v5l4 2" /></svg>
+)
+
 const IconCourse = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
 )
@@ -66,6 +74,20 @@ export default function DashboardPage() {
         icon: <IconDashboard />,
         isActive: (pathname) => pathname === '/dashboard' || pathname.startsWith('/courses/'),
       },
+      {
+        path: '/session',
+        label: 'Session',
+        shortLabel: 'Session',
+        icon: <IconTimer />,
+        isActive: (pathname) => pathname.startsWith('/session'),
+      },
+      {
+        path: '/history',
+        label: 'History',
+        shortLabel: 'History',
+        icon: <IconHistory />,
+        isActive: (pathname) => pathname.startsWith('/history'),
+      },
     ]
 
     if (user?.role === 'admin') {
@@ -84,21 +106,28 @@ export default function DashboardPage() {
   return (
     <WorkspaceShell
       brandingKicker="Instructor workspace"
-      brandingTitle="Course Hub"
-      brandingSubtitle="Courses, attendance, and analytics"
       navigation={navigation}
       userName={user?.full_name ?? 'User'}
       userRole={roleLabel}
       topbarKicker="Dashboard"
       topbarTitle={`Welcome back, ${firstName}`}
-      topbarDescription="Browse your courses, review section coverage, and move into detailed analytics without leaving the shared product layout."
+      topbarActions={
+        <>
+          <Button variant="secondary" onClick={() => navigate('/history')}>
+            View history
+          </Button>
+          <Button variant="secondary" onClick={() => navigate('/session')}>
+            Open session controls
+          </Button>
+        </>
+      }
       onLogout={logout}
     >
-      <section className="ui-hero">
+      {/* <section className="ui-hero">
         <p className="ui-auth-kicker">Overview</p>
         <h2>Everything you need to manage attendance is in one place.</h2>
         <p>Search across courses, open analytics for a single course, and move into administration when your role allows it.</p>
-      </section>
+      </section> */}
 
       <div className="ui-stat-grid">
         <MetricCard label="Visible courses" value={courses.length} icon={<IconCourse />} />

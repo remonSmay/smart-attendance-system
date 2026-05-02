@@ -4,7 +4,8 @@ import type { AdminTopBarConfig } from '../../components/admin/AdminShell'
 import AdminFormModal from '../../components/admin/AdminFormModal'
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal'
 import DataTable, { type DataTableColumn } from '../../components/admin/DataTable'
-import EmptyState from '../../components/admin/EmptyState'
+import TableToolbar from '../../components/admin/TableToolbar'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import { listCoursesAdmin } from '../../features/admin/api/coursesAdminApi'
 import {
   createSectionAdmin,
@@ -20,6 +21,7 @@ import type {
   UserApiResponse,
 } from '../../features/admin/types/adminApiTypes'
 import type { SectionAdminRow, SectionFormPayload } from '../../features/admin/types/adminContracts'
+import { useSnackbar } from '../../hooks/useSnackbar'
 import { useAdminPageConfig } from './useAdminPageConfig'
 import './AdminPages.css'
 
@@ -106,6 +108,10 @@ export default function SectionsAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formState, setFormState] = useState<SectionFormPayload>(initialSectionForm)
   const [selectedSection, setSelectedSection] = useState<SectionAdminRow | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const { showSnackbar } = useSnackbar()
 
   const syncSectionIntoState = useCallback(
     (section: SectionApiResponse) => {
@@ -201,6 +207,7 @@ export default function SectionsAdminPage() {
   const openCreateModal = useCallback(() => {
     setEditingId(null)
     setFormState(initialSectionForm)
+    setFormError(null)
     setIsFormOpen(true)
   }, [])
 
@@ -240,6 +247,7 @@ export default function SectionsAdminPage() {
         ? toDateTimeLocalValue(sourceSection.schedule_time)
         : '',
     })
+    setFormError(null)
     setIsFormOpen(true)
   }, [sectionById])
 
@@ -251,7 +259,7 @@ export default function SectionsAdminPage() {
   const handleFormSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       const payload = toSectionPayload(formState)
@@ -263,14 +271,15 @@ export default function SectionsAdminPage() {
       setIsFormOpen(false)
       setEditingId(null)
       setFormState(initialSectionForm)
+      showSnackbar(editingId ? 'Section updated successfully.' : 'Section created successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      setFormError(
         error instanceof Error ? error.message : 'Failed to save section.',
       )
     } finally {
       setIsSubmitting(false)
     }
-  }, [editingId, formState, syncSectionIntoState])
+  }, [editingId, formState, syncSectionIntoState, showSnackbar])
 
   const handleConfirmDelete = useCallback(async () => {
     if (!selectedSection) {
@@ -278,51 +287,66 @@ export default function SectionsAdminPage() {
     }
 
     setIsDeleting(true)
-    setFeedbackError(null)
+    setFormError(null)
 
     try {
       await deleteSectionAdmin(selectedSection.id)
       removeSectionFromState(selectedSection.id)
       setSelectedSection(null)
       setIsDeleteOpen(false)
+      showSnackbar('Section deleted successfully.', 'success')
     } catch (error) {
-      setFeedbackError(
+      showSnackbar(
         error instanceof Error ? error.message : 'Failed to delete section.',
+        'error'
       )
     } finally {
       setIsDeleting(false)
     }
-  }, [removeSectionFromState, selectedSection])
+  }, [removeSectionFromState, selectedSection, showSnackbar])
+
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows
+    const query = searchQuery.toLowerCase()
+    return rows.filter(row => 
+      row.sectionName.toLowerCase().includes(query) || 
+      row.courseCode.toLowerCase().includes(query) ||
+      row.instructorName.toLowerCase().includes(query)
+    )
+  }, [rows, searchQuery])
 
   return (
     <div className="admin-page-stack">
-      <section className="admin-page-note">
-        <h3>Section planning</h3>
-        <p>Connect sections to courses, instructors, and schedules so the rest of the product stays in sync.</p>
-      </section>
+      <TableToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search sections by name, course code, or instructor..."
+      />
 
       {feedbackError && (
-        <section className="admin-page-alert" role="alert">
-          <p>{feedbackError}</p>
-          <button type="button" onClick={() => void loadSections()}>
-            Retry
-          </button>
-        </section>
+        <FeedbackBanner 
+          variant="error" 
+          title="Data loading failed" 
+          description={feedbackError} 
+          actionLabel="Retry" 
+          onAction={() => void loadSections()} 
+        />
       )}
 
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={filteredRows}
         isLoading={isLoading}
         getRowId={(row) => row.id}
         onEditRow={handleEdit}
         onDeleteRow={handleDelete}
         emptyState={
-          <EmptyState
-            title="No sections loaded"
-            description="Create the first section or use retry if the API is temporarily unavailable."
-            actionLabel="Add Section"
-            onAction={openCreateModal}
+          <FeedbackBanner
+            variant="empty"
+            title={searchQuery ? 'No sections found' : 'No sections loaded'}
+            description={searchQuery ? 'Try adjusting your search criteria.' : 'Create the first section to get started.'}
+            actionLabel={searchQuery ? undefined : 'Add Section'}
+            onAction={searchQuery ? undefined : openCreateModal}
           />
         }
       />
@@ -333,78 +357,66 @@ export default function SectionsAdminPage() {
         description="Define the schedule and ownership details used throughout attendance operations."
         submitLabel={editingId ? 'Save Section' : 'Create Section'}
         isSubmitting={isSubmitting}
+        errorMessage={formError}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
       >
         <div className="admin-form-grid">
-          <label>
-            Section Name
+          <div className="ui-field">
+            <label className="ui-field__label">Section Name</label>
             <input
+              className="ui-input"
               value={formState.sectionName}
               onChange={(event) => setFormState((current) => ({ ...current, sectionName: event.target.value }))}
+              placeholder="e.g. Morning Batch A"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            Schedule Time
+          <div className="ui-field">
+            <label className="ui-field__label">Schedule Time</label>
             <input
+              className="ui-input"
               type="datetime-local"
               value={formState.scheduleTime}
               onChange={(event) => setFormState((current) => ({ ...current, scheduleTime: event.target.value }))}
               required
             />
-          </label>
+          </div>
 
-          <label>
-            Course
-            {courseOptions.length > 0 ? (
-              <select
-                value={formState.courseId}
-                onChange={(event) => setFormState((current) => ({ ...current, courseId: event.target.value }))}
-                required
-              >
-                <option value="">Select a course</option>
-                {courseOptions.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.course_code} - {course.course_name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                value={formState.courseId}
-                onChange={(event) => setFormState((current) => ({ ...current, courseId: event.target.value }))}
-                placeholder="Course ID"
-                required
-              />
-            )}
-          </label>
+          <div className="ui-field">
+            <label className="ui-field__label">Course</label>
+            <select
+              className="ui-select"
+              value={formState.courseId}
+              onChange={(event) => setFormState((current) => ({ ...current, courseId: event.target.value }))}
+              required
+            >
+              <option value="">Select a course</option>
+              {courseOptions.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.course_code} - {course.course_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label>
-            Instructor
-            {instructorOptions.length > 0 ? (
-              <select
-                value={formState.instructorId}
-                onChange={(event) => setFormState((current) => ({ ...current, instructorId: event.target.value }))}
-                required
-              >
-                <option value="">Select an instructor</option>
-                {instructorOptions.map((instructor) => (
-                  <option key={instructor.id} value={instructor.id}>
-                    {instructor.full_name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                value={formState.instructorId}
-                onChange={(event) => setFormState((current) => ({ ...current, instructorId: event.target.value }))}
-                placeholder="Instructor ID"
-                required
-              />
-            )}
-          </label>
+          <div className="ui-field">
+            <label className="ui-field__label">Instructor</label>
+            <select
+              className="ui-select"
+              value={formState.instructorId}
+              onChange={(event) => setFormState((current) => ({ ...current, instructorId: event.target.value }))}
+              required
+            >
+              <option value="">Select an instructor</option>
+              {instructorOptions.map((instructor) => (
+                <option key={instructor.id} value={instructor.id}>
+                  {instructor.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </AdminFormModal>
 

@@ -28,6 +28,18 @@ const IconChart = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
 )
 
+const IconStudents = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+)
+
+const IconTimer = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2h4" /><path d="M12 14v-4" /><path d="M12 2v2" /><circle cx="12" cy="14" r="8" /></svg>
+)
+
+const IconHistory = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5" /><path d="M3.05 13a9 9 0 1 0 2.13-5.3L3 10" /><path d="M12 7v5l4 2" /></svg>
+)
+
 const IconUsers = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
 )
@@ -43,6 +55,19 @@ const IconXCircle = () => (
 const IconPercent = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="5" x2="5" y2="19" /><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></svg>
 )
+
+const formatSummaryPeriod = (value: string): string => {
+  const parsedDate = new Date(value)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value
+  }
+
+  return parsedDate.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
 
 export default function CourseDashboardPage() {
   const { id } = useParams<{ id: string }>()
@@ -106,7 +131,28 @@ export default function CourseDashboardPage() {
         label: 'Analytics',
         shortLabel: 'Charts',
         icon: <IconChart />,
-        isActive: (pathname) => pathname.startsWith('/courses/'),
+        isActive: (pathname) => pathname === `/courses/${id ?? ''}`,
+      },
+      {
+        path: `/courses/${id ?? ''}/students`,
+        label: 'Students',
+        shortLabel: 'Students',
+        icon: <IconStudents />,
+        isActive: (pathname) => pathname.startsWith(`/courses/${id ?? ''}/students`),
+      },
+      {
+        path: '/session',
+        label: 'Session',
+        shortLabel: 'Session',
+        icon: <IconTimer />,
+        isActive: (pathname) => pathname.startsWith('/session'),
+      },
+      {
+        path: '/history',
+        label: 'History',
+        shortLabel: 'History',
+        icon: <IconHistory />,
+        isActive: (pathname) => pathname.startsWith('/history'),
       },
     ],
     [id],
@@ -124,9 +170,16 @@ export default function CourseDashboardPage() {
       topbarTitle="Course analytics"
       topbarDescription={id ? `Attendance trend reporting for course ${id.slice(0, 8)}.` : 'Attendance trend reporting for the selected course.'}
       topbarActions={
-        <Button variant="secondary" onClick={() => navigate('/dashboard')}>
-          Back to courses
-        </Button>
+        <>
+          {id ? (
+            <Button variant="secondary" onClick={() => navigate(`/courses/${id}/students`)}>
+              View students
+            </Button>
+          ) : null}
+          <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+            Back to courses
+          </Button>
+        </>
       }
       onLogout={logout}
     >
@@ -184,24 +237,38 @@ export default function CourseDashboardPage() {
                   description="Compare weekly present and absent counts across recent attendance windows."
                 />
                 <div className="course-dashboard-chart-frame">
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={data.weekly_summaries}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(95, 115, 137, 0.18)" />
-                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#ffffff',
-                          borderRadius: '16px',
-                          border: '1px solid #d5e3f3',
-                          boxShadow: '0 12px 24px rgba(16, 42, 67, 0.12)',
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} />
-                      <Line type="monotone" dataKey="present" stroke="#13805c" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Present" />
-                      <Line type="monotone" dataKey="absent" stroke="#d64545" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Absent" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {data.weekly_summaries.length === 0 ? (
+                    <section className="ui-empty course-dashboard-chart-empty">
+                      <h3>No weekly data yet</h3>
+                      <p>Start attendance sessions to populate this weekly trend chart.</p>
+                    </section>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <LineChart data={data.weekly_summaries}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(95, 115, 137, 0.18)" />
+                        <XAxis
+                          dataKey="period_start"
+                          tickFormatter={formatSummaryPeriod}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#5f7389', fontSize: 12 }}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
+                        <Tooltip
+                          labelFormatter={(label) => formatSummaryPeriod(String(label))}
+                          contentStyle={{
+                            backgroundColor: '#ffffff',
+                            borderRadius: '16px',
+                            border: '1px solid #d5e3f3',
+                            boxShadow: '0 12px 24px rgba(16, 42, 67, 0.12)',
+                          }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Line type="monotone" dataKey="present_count" stroke="#13805c" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Present" />
+                        <Line type="monotone" dataKey="absent_count" stroke="#d64545" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Absent" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </section>
 
@@ -212,24 +279,38 @@ export default function CourseDashboardPage() {
                   description="Use the monthly rollup to spot broader attendance changes over time."
                 />
                 <div className="course-dashboard-chart-frame">
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={data.monthly_summaries}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(95, 115, 137, 0.18)" />
-                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#ffffff',
-                          borderRadius: '16px',
-                          border: '1px solid #d5e3f3',
-                          boxShadow: '0 12px 24px rgba(16, 42, 67, 0.12)',
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} />
-                      <Line type="monotone" dataKey="present" stroke="#13805c" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Present" />
-                      <Line type="monotone" dataKey="absent" stroke="#d64545" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Absent" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {data.monthly_summaries.length === 0 ? (
+                    <section className="ui-empty course-dashboard-chart-empty">
+                      <h3>No monthly data yet</h3>
+                      <p>Start attendance sessions to populate this monthly trend chart.</p>
+                    </section>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <LineChart data={data.monthly_summaries}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(95, 115, 137, 0.18)" />
+                        <XAxis
+                          dataKey="period_start"
+                          tickFormatter={formatSummaryPeriod}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#5f7389', fontSize: 12 }}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f7389', fontSize: 12 }} />
+                        <Tooltip
+                          labelFormatter={(label) => formatSummaryPeriod(String(label))}
+                          contentStyle={{
+                            backgroundColor: '#ffffff',
+                            borderRadius: '16px',
+                            border: '1px solid #d5e3f3',
+                            boxShadow: '0 12px 24px rgba(16, 42, 67, 0.12)',
+                          }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Line type="monotone" dataKey="present_count" stroke="#13805c" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Present" />
+                        <Line type="monotone" dataKey="absent_count" stroke="#d64545" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Absent" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </section>
             </div>

@@ -97,13 +97,9 @@ export default function RegisterPage({
     <div className="ui-auth-page register-page">
       <div className="ui-auth-card animate-fade-up">
         <div className="ui-auth-header">
-          <BrandLogo centered large subtitle="Create your instructor or admin account" />
-          <div className="ui-fields" style={{ gap: 'var(--space-2)' }}>
-            <p className="ui-auth-kicker">Create account</p>
-            <h1 className="ui-auth-title">Set up your Attendu workspace</h1>
-            <p className="ui-auth-description">
-              Use the same design system, navigation model, and course tooling from your first sign-in.
-            </p>
+          <BrandLogo centered large />
+          <div className="ui-fields">
+            <h1 className="ui-auth-title">Create Account</h1>
           </div>
         </div>
 

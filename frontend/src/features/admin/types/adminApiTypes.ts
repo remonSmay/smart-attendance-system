@@ -10,6 +10,7 @@ export interface StudentApiResponse extends TimestampedEntity {
   phone: string | null
   rfid_uid: string
   face_reference_image: string | null
+  section_ids: string[]
 }
 
 export interface StudentApiUpsertPayload {
@@ -18,6 +19,7 @@ export interface StudentApiUpsertPayload {
   phone?: string | null
   rfid_uid: string
   face_reference_image?: string | null
+  section_ids?: string[]
 }
 
 export interface CourseApiResponse extends TimestampedEntity {
@@ -57,5 +59,12 @@ export interface DeviceApiUpsertPayload {
 export interface UserApiResponse extends TimestampedEntity {
   full_name: string
   email: string
+  role: string
+}
+
+export interface UserApiCreatePayload {
+  full_name: string
+  email: string
+  password?: string
   role: string
 }

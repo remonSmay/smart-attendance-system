@@ -12,6 +12,7 @@ class StudentCreate(ORMModel):
     phone: Optional[str] = Field(default=None, max_length=20)
     rfid_uid: str = Field(min_length=3, max_length=50)
     face_reference_image: Optional[str] = None
+    section_ids: list[UUID] = Field(default_factory=list)
 
 
 class StudentUpdate(ORMModel):
@@ -20,6 +21,7 @@ class StudentUpdate(ORMModel):
     phone: str | None = Field(default=None, max_length=20)
     rfid_uid: str | None = Field(default=None, min_length=3, max_length=50)
     face_reference_image: str | None = None
+    section_ids: list[UUID] | None = None
 
 
 class StudentResponse(TimestampedResponse):
@@ -28,3 +30,4 @@ class StudentResponse(TimestampedResponse):
     phone: str | None
     rfid_uid: str
     face_reference_image: str | None
+    section_ids: list[UUID] = Field(default_factory=list)

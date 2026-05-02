@@ -9,8 +9,12 @@ import DevicesAdminPage from './pages/admin/DevicesAdminPage'
 import EnrollmentsAdminPage from './pages/admin/EnrollmentsAdminPage'
 import SectionsAdminPage from './pages/admin/SectionsAdminPage'
 import StudentsAdminPage from './pages/admin/StudentsAdminPage'
+import UsersAdminPage from './pages/admin/UsersAdminPage'
 import CourseDashboardPage from './pages/CourseDashboardPage'
 import DashboardPage from './pages/DashboardPage'
+import HistoryPage from './pages/HistoryPage'
+import SessionPage from './pages/SessionPage'
+import StudentsPage from './pages/StudentsPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -43,10 +47,14 @@ function App() {
       />
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/courses/:id/students" element={<StudentsPage />} />
         <Route path="/courses/:id" element={<CourseDashboardPage />} />
+        <Route path="/session" element={<SessionPage />} />
+        <Route path="/history" element={<HistoryPage />} />
         <Route element={<ProtectedRoute allowedRoles={['admin']} unauthorizedPath="/dashboard" />}>
           <Route path="/admin" element={<AdminShell />}>
             <Route index element={<Navigate to="students" replace />} />
+            <Route path="users" element={<UsersAdminPage />} />
             <Route path="students" element={<StudentsAdminPage />} />
             <Route path="courses" element={<CoursesAdminPage />} />
             <Route path="sections" element={<SectionsAdminPage />} />

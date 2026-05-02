@@ -2,6 +2,8 @@ import { httpClient } from '../../../api/httpClient'
 import { extractApiErrorMessage } from '../../admin/api/adminApiUtils'
 import type {
   AttendanceSessionCreate,
+  AttendanceSessionHistoryQuery,
+  AttendanceSessionHistoryResponse,
   AttendanceSessionResponse,
   AttendanceSessionUpdate,
 } from '../types/attendanceSessionTypes'
@@ -15,6 +17,22 @@ export const getActiveSessions = async (): Promise<AttendanceSessionResponse[]> 
     return response.data
   } catch (error) {
     throw new Error(extractApiErrorMessage(error, 'Failed to fetch active sessions.'))
+  }
+}
+
+export const getAttendanceSessionsHistory = async (
+  query: AttendanceSessionHistoryQuery = {},
+): Promise<AttendanceSessionHistoryResponse[]> => {
+  try {
+    const response = await httpClient.get<AttendanceSessionHistoryResponse[]>(
+      `${ATTENDANCE_SESSIONS_ENDPOINT}/`,
+      {
+        params: query,
+      },
+    )
+    return response.data
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error, 'Failed to fetch attendance history.'))
   }
 }
 
@@ -55,4 +73,9 @@ export const deleteSession = async (id: string): Promise<void> => {
   }
 }
 
-export type { AttendanceSessionCreate, AttendanceSessionResponse }
+export type {
+  AttendanceSessionCreate,
+  AttendanceSessionHistoryQuery,
+  AttendanceSessionHistoryResponse,
+  AttendanceSessionResponse,
+}

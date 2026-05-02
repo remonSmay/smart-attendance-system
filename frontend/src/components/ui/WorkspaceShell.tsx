@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
-import BrandLogo from './BrandLogo'
+// import BrandLogo from './BrandLogo'
 import Button from './Button'
 
 export interface WorkspaceNavItem {
@@ -20,7 +20,7 @@ interface WorkspaceShellProps {
   userName: string
   userRole: string
   topbarKicker?: string
-  topbarTitle: string
+  topbarTitle: ReactNode
   topbarDescription?: string
   topbarActions?: ReactNode
   footerNote?: string
@@ -30,8 +30,6 @@ interface WorkspaceShellProps {
 
 export default function WorkspaceShell({
   brandingKicker = 'Attendu',
-  brandingTitle = 'Workspace',
-  brandingSubtitle = 'Smart attendance system',
   navigation,
   userName,
   userRole,
@@ -39,7 +37,6 @@ export default function WorkspaceShell({
   topbarTitle,
   topbarDescription,
   topbarActions,
-  footerNote = 'Attendu smart attendance platform',
   onLogout,
   children,
 }: WorkspaceShellProps) {
@@ -58,7 +55,6 @@ export default function WorkspaceShell({
       <aside className="ui-shell__sidebar" aria-label="Primary navigation">
         <div className="ui-shell__brand">
           <p className="ui-auth-kicker">{brandingKicker}</p>
-          <BrandLogo title={brandingTitle} subtitle={brandingSubtitle} />
         </div>
 
         <section className="ui-shell__user">
@@ -72,7 +68,12 @@ export default function WorkspaceShell({
             const className = `ui-shell__nav-link${isActive ? ' ui-shell__nav-link--active' : ''}`
 
             return (
-              <NavLink key={item.path} to={item.path} className={className}>
+              <NavLink 
+                key={item.path} 
+                to={item.path} 
+                className={className}
+                aria-current={isActive ? 'page' : undefined}
+              >
                 {item.icon ? <span className="ui-button-icon" aria-hidden="true">{item.icon}</span> : null}
                 <span>{item.label}</span>
               </NavLink>
@@ -92,12 +93,11 @@ export default function WorkspaceShell({
             <h1 className="ui-shell__title">{topbarTitle}</h1>
             {topbarDescription ? <p className="ui-shell__description">{topbarDescription}</p> : null}
           </div>
-          {topbarActions}
+          {topbarActions ? <div className="ui-shell__topbar-actions">{topbarActions}</div> : null}
         </header>
 
         <main className="ui-shell__main">{children}</main>
 
-        <footer className="ui-shell__footer">{footerNote}</footer>
       </div>
 
       <nav className="ui-shell__mobile-nav" aria-label="Mobile navigation">
@@ -106,7 +106,12 @@ export default function WorkspaceShell({
           const className = `ui-shell__mobile-link${isActive ? ' ui-shell__mobile-link--active' : ''}`
 
           return (
-            <NavLink key={item.path} to={item.path} className={className}>
+            <NavLink 
+              key={item.path} 
+              to={item.path} 
+              className={className}
+              aria-current={isActive ? 'page' : undefined}
+            >
               {item.shortLabel ?? item.label}
             </NavLink>
           )

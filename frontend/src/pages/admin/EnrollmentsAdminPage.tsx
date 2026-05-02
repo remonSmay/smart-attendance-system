@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { AdminTopBarConfig } from '../../components/admin/AdminShell'
 import DataTable, { type DataTableColumn } from '../../components/admin/DataTable'
-import EmptyState from '../../components/admin/EmptyState'
+import FeedbackBanner from '../../components/ui/FeedbackBanner'
 import { listStudentsAdmin } from '../../features/admin/api/studentsAdminApi'
 import {
   enrollStudentToSectionAdmin,
@@ -14,6 +14,7 @@ import type {
   SectionApiResponse,
   StudentApiResponse,
 } from '../../features/admin/types/adminApiTypes'
+import { useSnackbar } from '../../hooks/useSnackbar'
 import { useAdminPageConfig } from './useAdminPageConfig'
 import './AdminPages.css'
 
@@ -52,6 +53,8 @@ export default function EnrollmentsAdminPage() {
   const [activeEnrollStudentId, setActiveEnrollStudentId] = useState<string | null>(null)
   const [activeRemoveStudentId, setActiveRemoveStudentId] = useState<string | null>(null)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
+
+  const { showSnackbar } = useSnackbar()
 
   const pageConfig = useMemo<AdminTopBarConfig>(
     () => ({
@@ -204,15 +207,17 @@ export default function EnrollmentsAdminPage() {
 
           return [...current, enrolledStudent]
         })
+        showSnackbar('Student enrolled successfully.', 'success')
       } catch (error) {
-        setFeedbackError(
+        showSnackbar(
           error instanceof Error ? error.message : 'Failed to enroll student.',
+          'error'
         )
       } finally {
         setActiveEnrollStudentId(null)
       }
     },
-    [activeEnrollStudentId, activeRemoveStudentId, selectedSectionId],
+    [activeEnrollStudentId, activeRemoveStudentId, selectedSectionId, showSnackbar],
   )
 
   const handleRemoveStudent = useCallback(
@@ -229,17 +234,19 @@ export default function EnrollmentsAdminPage() {
         setEnrolledStudents((current) =>
           current.filter((student) => student.id !== row.id),
         )
+        showSnackbar('Student removed from section successfully.', 'success')
       } catch (error) {
-        setFeedbackError(
+        showSnackbar(
           error instanceof Error
             ? error.message
             : 'Failed to remove student enrollment.',
+          'error'
         )
       } finally {
         setActiveRemoveStudentId(null)
       }
     },
-    [activeEnrollStudentId, activeRemoveStudentId, selectedSectionId],
+    [activeEnrollStudentId, activeRemoveStudentId, selectedSectionId, showSnackbar],
   )
 
   return (
@@ -250,19 +257,23 @@ export default function EnrollmentsAdminPage() {
       </section>
 
       {feedbackError && (
-        <section className="admin-page-alert" role="alert">
-          <p>{feedbackError}</p>
-          <button type="button" onClick={() => void loadBootstrap()}>
-            Retry
-          </button>
-        </section>
+        <FeedbackBanner 
+          variant="error" 
+          title="Operation failed" 
+          description={feedbackError} 
+          actionLabel="Retry" 
+          onAction={() => void loadBootstrap()} 
+        />
       )}
 
       <section className="admin-page-note">
         <div className="admin-form-grid">
-          <label>
-            Select Section
+          <div className="ui-field">
+            <div className="ui-field__header">
+              <label className="ui-field__label">Select Section</label>
+            </div>
             <select
+              className="ui-input"
               value={selectedSectionId}
               onChange={(event) => setSelectedSectionId(event.target.value)}
               disabled={isBootLoading || sections.length === 0}
@@ -277,29 +288,33 @@ export default function EnrollmentsAdminPage() {
                 ))
               )}
             </select>
-          </label>
+          </div>
 
-          <label>
-            Search Available Students
+          <div className="ui-field">
+            <div className="ui-field__header">
+              <label className="ui-field__label">Search Available Students</label>
+            </div>
             <input
+              className="ui-input"
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search by name, email, or RFID"
               disabled={!selectedSectionId}
             />
-          </label>
+          </div>
         </div>
 
         {selectedSection && (
-          <p className="admin-page-meta">
+          <p className="admin-page-meta" style={{ marginTop: '1rem' }}>
             Active section: {selectedSection.section_name} | Scheduled {formatSchedule(selectedSection.schedule_time)}
           </p>
         )}
       </section>
 
       {!selectedSectionId ? (
-        <EmptyState
+        <FeedbackBanner
+          variant="empty"
           title="No section selected"
           description="Create at least one section first, then return to connect students with enrollments."
         />
@@ -318,7 +333,8 @@ export default function EnrollmentsAdminPage() {
                 void handleRemoveStudent(row)
               }}
               emptyState={
-                <EmptyState
+                <FeedbackBanner
+                  variant="empty"
                   title="No enrolled students"
                   description="Use the available list to connect students to this section."
                 />
@@ -335,7 +351,8 @@ export default function EnrollmentsAdminPage() {
             <p>Students below are not yet enrolled in this section.</p>
 
             {availableRows.length === 0 ? (
-              <EmptyState
+              <FeedbackBanner
+                variant="empty"
                 title="No available students"
                 description="Every listed student is already enrolled or your search returned no match."
               />
@@ -350,6 +367,7 @@ export default function EnrollmentsAdminPage() {
                       </p>
                     </div>
                     <button
+                      className="ui-button ui-button--primary"
                       type="button"
                       onClick={() => {
                         void handleEnrollStudent(student.id)

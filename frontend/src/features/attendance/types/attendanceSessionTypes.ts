@@ -23,4 +23,22 @@ export interface AttendanceSessionResponse {
   start_time: string
   end_time: string
   is_active: boolean
+  total_students?: number
+}
+
+export interface AttendanceSessionHistoryQuery {
+  start_date?: string
+  end_date?: string
+  course_code?: string
+}
+
+export interface AttendanceSessionHistoryResponse extends AttendanceSessionResponse {
+  section_name?: string
+  section?: string
+  course_code?: string
+  present_count?: number
+  present?: number
+  attendance_percentage?: number
+  percentage?: number
+  status?: string
 }

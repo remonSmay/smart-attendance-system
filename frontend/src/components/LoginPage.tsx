@@ -75,13 +75,9 @@ export default function LoginPage({
     <div className="ui-auth-page login-page">
       <div className="ui-auth-card ui-auth-card--compact animate-fade-up">
         <div className="ui-auth-header">
-          <BrandLogo centered large subtitle="Smart attendance platform" />
-          <div className="ui-fields" style={{ gap: 'var(--space-2)' }}>
-            <p className="ui-auth-kicker">Welcome back</p>
-            <h1 className="ui-auth-title">Sign in to your workspace</h1>
-            <p className="ui-auth-description">
-              Access courses, analytics, attendance sessions, and administration from one consistent workspace.
-            </p>
+          <BrandLogo centered large />
+          <div className="ui-fields">
+            <h1 className="ui-auth-title">Sign in</h1>
           </div>
         </div>
 
@@ -162,27 +158,14 @@ export default function LoginPage({
           <Button type="submit" loading={isLoading} fullWidth size="lg">
             {isLoading ? 'Signing in' : 'Sign in'}
           </Button>
+          <div className="ui-auth-footer-inline">
+            <p className="ui-auth-description">
+              New to Attendu? <Link to="/register">Create an account</Link>.
+            </p>
+          </div>
         </form>
 
-        <div className="ui-social-row">
-          <div className="ui-divider">
-            <span>or continue with</span>
-          </div>
-          <div className="login-social-grid">
-            <Button type="button" variant="secondary" fullWidth>
-              Google
-            </Button>
-            <Button type="button" variant="secondary" fullWidth>
-              Microsoft
-            </Button>
-          </div>
-        </div>
-
-        <div className="ui-auth-footer">
-          <p className="ui-auth-description">
-            New to Attendu? <Link to="/register">Create an account</Link>.
-          </p>
-        </div>
+        {/* Minimal footer omitted - sign in only */}
       </div>
     </div>
   )
