@@ -1,4 +1,13 @@
 {
+  "name": "smart-attendance-system",
+  "version": "1.0.0",
+  "description": "Smart Attendance System",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview",
+    "lint": "cd frontend && npm run lint"
+  },
   "dependencies": {
     "recharts": "^3.8.1"
   }
